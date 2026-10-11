@@ -1661,3 +1661,4 @@ if _G.FRH_UpdateCrosshair then _G.FRH_UpdateCrosshair() end
 if _G.FRH_SetupAutoFire then _G.FRH_SetupAutoFire() end
 RefreshUI()
 switchTab("AIMBOT")
+print("[FRH] v90 carregado! (Billboard proporcional + todos os fixes)")
