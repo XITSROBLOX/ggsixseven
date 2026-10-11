@@ -1,0 +1,1663 @@
+-----------------------------------------------------------
+-- AIMBOT WHITELIST PANEL
+-----------------------------------------------------------
+local function createAimbotWhitelist()
+    if AimbotWhitelistPanel then AimbotWhitelistPanel:Destroy() end
+    local fp = Instance.new("Frame")
+    fp.Name = "FRH_AimbotWhitelist"
+    fp.Size = UDim2.new(0, 320, 0, 420); fp.Position = UDim2.new(0.5, -160, 0.5, -210)
+    fp.BackgroundColor3 = C.BG_CARD; fp.BorderSizePixel = 0; fp.ZIndex = 50
+    fp.Active = true; fp.Draggable = true; fp.Parent = ScreenGui
+    Instance.new("UICorner", fp).CornerRadius = UDim.new(0, 8)
+    Instance.new("UIStroke", fp).Color = C.BORDER
+
+    local header = Instance.new("Frame"); header.Size = UDim2.new(1, 0, 0, 28); header.BackgroundColor3 = C.BG_INPUT; header.BorderSizePixel = 0; header.Parent = fp
+    Instance.new("UICorner", header).CornerRadius = UDim.new(0, 8)
+    local ht = Instance.new("TextLabel"); ht.Size = UDim2.new(1, -60, 1, 0); ht.Position = UDim2.new(0, 8, 0, 0); ht.BackgroundTransparency = 1
+    ht.Text = "WHITELIST (IGNORAR AIMBOT/HITBOX)"; ht.TextColor3 = C.WHITE; ht.Font = FONT_HEADER; ht.TextSize = 9
+    ht.TextXAlignment = Enum.TextXAlignment.Left; ht.Parent = header
+    local cls = Instance.new("TextButton"); cls.Size = UDim2.new(0, 22, 0, 22); cls.Position = UDim2.new(1, -26, 0, 3)
+    cls.BackgroundColor3 = C.BLACK; cls.BorderSizePixel = 0; cls.Text = "X"; cls.TextColor3 = C.WHITE; cls.Font = FONT_HEADER; cls.TextSize = 9; cls.Parent = header
+    Instance.new("UICorner", cls).CornerRadius = UDim.new(0, 3)
+
+    local search = Instance.new("TextBox")
+    search.Size = UDim2.new(1, -12, 0, 22); search.Position = UDim2.new(0, 6, 0, 34); search.BackgroundColor3 = C.BG_INPUT
+    search.BorderSizePixel = 0; search.PlaceholderText = "Buscar jogador..."; search.Text = ""; search.TextColor3 = C.WHITE
+    search.PlaceholderColor3 = C.TEXT_DIM; search.Font = FONT_BODY; search.TextSize = 9; search.Parent = fp
+    Instance.new("UICorner", search).CornerRadius = UDim.new(0, 4); Instance.new("UIStroke", search).Color = C.BORDER_LT
+
+    local scroll = Instance.new("ScrollingFrame")
+    scroll.Size = UDim2.new(1, -12, 1, -66); scroll.Position = UDim2.new(0, 6, 0, 60)
+    scroll.BackgroundColor3 = Color3.fromRGB(12, 12, 16); scroll.BorderSizePixel = 0
+    scroll.ScrollBarThickness = 3; scroll.CanvasSize = UDim2.new(0, 0, 0, 0); scroll.Parent = fp
+    Instance.new("UICorner", scroll).CornerRadius = UDim.new(0, 4); Instance.new("UIStroke", scroll).Color = C.BORDER
+    local sl = Instance.new("UIListLayout", scroll); sl.SortOrder = Enum.SortOrder.LayoutOrder; sl.Padding = UDim.new(0, 3)
+    local sp = Instance.new("UIPadding", scroll); sp.PaddingTop = UDim.new(0, 4); sp.PaddingLeft = UDim.new(0, 3); sp.PaddingRight = UDim.new(0, 3)
+
+    local rows = {}
+    local searchText = ""
+
+    local function renderRows()
+        for _, r in pairs(rows) do
+            if r.Frame and r.Frame.Parent then
+                r.Frame.Visible = searchText == "" or string.find(string.lower(r.Name), string.lower(searchText), 1, true)
+            end
+        end
+        scroll.CanvasSize = UDim2.new(0, 0, 0, sl.AbsoluteContentSize.Y + 8)
+    end
+
+    local function addRow(player)
+        if player == LocalPlayer then return end
+        if rows[player.Name] then return end
+        local r = Instance.new("Frame")
+        r.Size = UDim2.new(1, -6, 0, 26); r.BackgroundColor3 = Color3.fromRGB(22, 22, 28); r.BorderSizePixel = 0; r.Parent = scroll
+        Instance.new("UICorner", r).CornerRadius = UDim.new(0, 4)
+        local rs = Instance.new("UIStroke", r); rs.Color = Color3.fromRGB(30, 30, 42)
+
+        local cb = Instance.new("Frame")
+        cb.Size = UDim2.new(0, 14, 0, 14); cb.Position = UDim2.new(0, 6, 0.5, -7)
+        cb.BackgroundColor3 = C.BG_INPUT; cb.BorderSizePixel = 0; cb.Parent = r
+        Instance.new("UICorner", cb).CornerRadius = UDim.new(0, 3)
+        local cbs = Instance.new("UIStroke", cb); cbs.Color = C.BORDER_LT; cbs.Thickness = 1.5
+
+        local lb = Instance.new("TextLabel")
+        lb.Size = UDim2.new(1, -30, 1, 0); lb.Position = UDim2.new(0, 26, 0, 0); lb.BackgroundTransparency = 1
+        lb.Text = player.Name; lb.TextColor3 = C.WHITE; lb.Font = FONT_BODY; lb.TextSize = 9
+        lb.TextXAlignment = Enum.TextXAlignment.Left; lb.TextTruncate = Enum.TextTruncate.AtEnd; lb.Parent = r
+
+        local isWL = Config.Whitelist.Players[player.Name] == true
+        local function renderCB()
+            cb.BackgroundColor3 = isWL and C.WHITE or C.BG_INPUT
+            cbs.Color = isWL and C.WHITE or C.BORDER_LT
+        end
+        renderCB()
+
+        local hit = Instance.new("TextButton")
+        hit.Size = UDim2.new(1, 0, 1, 0); hit.BackgroundTransparency = 1; hit.Text = ""; hit.ZIndex = 5; hit.Parent = r
+        hit.MouseButton1Click:Connect(function()
+            isWL = not isWL
+            Config.Whitelist.Players[player.Name] = isWL or nil
+            renderCB()
+        end)
+
+        rows[player.Name] = { Frame = r, Name = player.Name }
+        renderRows()
+    end
+
+    local function removeRow(player)
+        if rows[player.Name] then rows[player.Name].Frame:Destroy(); rows[player.Name] = nil; renderRows() end
+    end
+
+    for _, p in ipairs(Players:GetPlayers()) do addRow(p) end
+    Players.PlayerAdded:Connect(function(p) task.wait(0.3); addRow(p) end)
+    Players.PlayerRemoving:Connect(removeRow)
+
+    search:GetPropertyChangedSignal("Text"):Connect(function()
+        searchText = search.Text
+        renderRows()
+    end)
+
+    cls.MouseButton1Click:Connect(function() fp:Destroy(); AimbotWhitelistPanel = nil end)
+    AimbotWhitelistPanel = fp
+end
+
+-----------------------------------------------------------
+-- FLOATING TP/SPEC PANEL
+-----------------------------------------------------------
+local function createFloatingWhitelist()
+    if FloatingWhitelistPanel then FloatingWhitelistPanel:Destroy() end
+    local fp = Instance.new("Frame")
+    fp.Name = "FRH_FloatingWhitelist"
+    fp.Size = UDim2.new(0, 340, 0, 400); fp.Position = UDim2.new(0.5, 180, 0.5, -200)
+    fp.BackgroundColor3 = C.BG_CARD; fp.BorderSizePixel = 0; fp.ZIndex = 50
+    fp.Active = true; fp.Draggable = true; fp.Parent = ScreenGui
+    Instance.new("UICorner", fp).CornerRadius = UDim.new(0, 8)
+    Instance.new("UIStroke", fp).Color = C.BORDER
+
+    local header = Instance.new("Frame"); header.Size = UDim2.new(1, 0, 0, 28); header.BackgroundColor3 = C.BG_INPUT; header.BorderSizePixel = 0; header.Parent = fp
+    Instance.new("UICorner", header).CornerRadius = UDim.new(0, 8)
+    local ht = Instance.new("TextLabel"); ht.Size = UDim2.new(1, -30, 1, 0); ht.Position = UDim2.new(0, 8, 0, 0); ht.BackgroundTransparency = 1
+    ht.Text = "TP / SPEC / STOP / BACK"; ht.TextColor3 = C.WHITE; ht.Font = FONT_HEADER; ht.TextSize = 10
+    ht.TextXAlignment = Enum.TextXAlignment.Left; ht.Parent = header
+    local cls = Instance.new("TextButton"); cls.Size = UDim2.new(0, 22, 0, 22); cls.Position = UDim2.new(1, -26, 0, 3)
+    cls.BackgroundColor3 = C.BLACK; cls.BorderSizePixel = 0; cls.Text = "X"; cls.TextColor3 = C.WHITE; cls.Font = FONT_HEADER; cls.TextSize = 9; cls.Parent = header
+    Instance.new("UICorner", cls).CornerRadius = UDim.new(0, 3)
+
+    local search = Instance.new("TextBox")
+    search.Size = UDim2.new(1, -12, 0, 22); search.Position = UDim2.new(0, 6, 0, 34); search.BackgroundColor3 = C.BG_INPUT
+    search.BorderSizePixel = 0; search.PlaceholderText = "Buscar..."; search.Text = ""; search.TextColor3 = C.WHITE
+    search.PlaceholderColor3 = C.TEXT_DIM; search.Font = FONT_BODY; search.TextSize = 9; search.Parent = fp
+    Instance.new("UICorner", search).CornerRadius = UDim.new(0, 4); Instance.new("UIStroke", search).Color = C.BORDER_LT
+
+    local scroll = Instance.new("ScrollingFrame")
+    scroll.Size = UDim2.new(1, -12, 1, -66); scroll.Position = UDim2.new(0, 6, 0, 60)
+    scroll.BackgroundColor3 = Color3.fromRGB(12, 12, 16); scroll.BorderSizePixel = 0
+    scroll.ScrollBarThickness = 3; scroll.CanvasSize = UDim2.new(0, 0, 0, 0); scroll.Parent = fp
+    Instance.new("UICorner", scroll).CornerRadius = UDim.new(0, 4); Instance.new("UIStroke", scroll).Color = C.BORDER
+    local sl = Instance.new("UIListLayout", scroll); sl.SortOrder = Enum.SortOrder.LayoutOrder; sl.Padding = UDim.new(0, 3)
+    local sp = Instance.new("UIPadding", scroll); sp.PaddingTop = UDim.new(0, 4); sp.PaddingLeft = UDim.new(0, 3); sp.PaddingRight = UDim.new(0, 3)
+
+    local rows = {}
+    local searchText = ""
+
+    local function renderRows()
+        for _, r in pairs(rows) do
+            if r.Frame and r.Frame.Parent then
+                r.Frame.Visible = searchText == "" or string.find(string.lower(r.Name), string.lower(searchText), 1, true)
+            end
+        end
+        scroll.CanvasSize = UDim2.new(0, 0, 0, sl.AbsoluteContentSize.Y + 8)
+    end
+
+    local function addRow(player)
+        if player == LocalPlayer then return end
+        if rows[player.Name] then return end
+        local r = Instance.new("Frame")
+        r.Size = UDim2.new(1, -6, 0, 26); r.BackgroundColor3 = Color3.fromRGB(22, 22, 28); r.BorderSizePixel = 0; r.Parent = scroll
+        Instance.new("UICorner", r).CornerRadius = UDim.new(0, 4)
+        local rs = Instance.new("UIStroke", r); rs.Color = Color3.fromRGB(30, 30, 42)
+
+        local lb = Instance.new("TextLabel")
+        lb.Size = UDim2.new(0.4, 0, 1, 0); lb.Position = UDim2.new(0, 6, 0, 0); lb.BackgroundTransparency = 1
+        lb.Text = player.Name; lb.TextColor3 = C.WHITE; lb.Font = FONT_BODY; lb.TextSize = 8
+        lb.TextXAlignment = Enum.TextXAlignment.Left; lb.TextTruncate = Enum.TextTruncate.AtEnd; lb.Parent = r
+
+        local tpBtn = Instance.new("TextButton")
+        tpBtn.Size = UDim2.new(0, 34, 0, 18); tpBtn.Position = UDim2.new(0.4, 0, 0.5, -9); tpBtn.BackgroundColor3 = C.BG_INPUT
+        tpBtn.BorderSizePixel = 0; tpBtn.Text = "TP"; tpBtn.TextColor3 = C.WHITE; tpBtn.Font = FONT_HEADER; tpBtn.TextSize = 7; tpBtn.Parent = r
+        Instance.new("UICorner", tpBtn).CornerRadius = UDim.new(0, 3); Instance.new("UIStroke", tpBtn).Color = C.BORDER_LT
+
+        local specBtn = Instance.new("TextButton")
+        specBtn.Size = UDim2.new(0, 40, 0, 18); specBtn.Position = UDim2.new(0.4, 38, 0.5, -9); specBtn.BackgroundColor3 = C.BG_INPUT
+        specBtn.BorderSizePixel = 0; specBtn.Text = "SPEC"; specBtn.TextColor3 = C.WHITE; specBtn.Font = FONT_HEADER; specBtn.TextSize = 7; specBtn.Parent = r
+        Instance.new("UICorner", specBtn).CornerRadius = UDim.new(0, 3); Instance.new("UIStroke", specBtn).Color = C.BORDER_LT
+
+        local stopBtn = Instance.new("TextButton")
+        stopBtn.Size = UDim2.new(0, 40, 0, 18); stopBtn.Position = UDim2.new(0.4, 82, 0.5, -9); stopBtn.BackgroundColor3 = C.BG_INPUT
+        stopBtn.BorderSizePixel = 0; stopBtn.Text = "STOP"; stopBtn.TextColor3 = C.WHITE; stopBtn.Font = FONT_HEADER; stopBtn.TextSize = 7; stopBtn.Parent = r
+        Instance.new("UICorner", stopBtn).CornerRadius = UDim.new(0, 3); Instance.new("UIStroke", stopBtn).Color = C.BORDER_LT
+
+        local backBtn = Instance.new("TextButton")
+        backBtn.Size = UDim2.new(0, 42, 0, 18); backBtn.Position = UDim2.new(1, -46, 0.5, -9); backBtn.BackgroundColor3 = C.BG_INPUT
+        backBtn.BorderSizePixel = 0; backBtn.Text = "BACK"; backBtn.TextColor3 = C.WHITE; backBtn.Font = FONT_HEADER; backBtn.TextSize = 7; backBtn.Parent = r
+        Instance.new("UICorner", backBtn).CornerRadius = UDim.new(0, 3); Instance.new("UIStroke", backBtn).Color = C.BORDER_LT
+
+        tpBtn.MouseButton1Click:Connect(function()
+            local ok = teleportToPlayer(player)
+            tpBtn.BackgroundColor3 = ok and C.WHITE or C.RED
+            task.delay(0.5, function() tpBtn.BackgroundColor3 = C.BG_INPUT end)
+        end)
+        specBtn.MouseButton1Click:Connect(function()
+            local ok = spectatePlayer(player)
+            specBtn.BackgroundColor3 = ok and C.WHITE or C.RED
+            task.delay(0.5, function() specBtn.BackgroundColor3 = C.BG_INPUT end)
+        end)
+        stopBtn.MouseButton1Click:Connect(function()
+            stopSpectate()
+            stopBtn.BackgroundColor3 = C.WHITE
+            task.delay(0.5, function() stopBtn.BackgroundColor3 = C.BG_INPUT end)
+        end)
+        backBtn.MouseButton1Click:Connect(function()
+            returnToSavedPosition()
+            backBtn.BackgroundColor3 = C.WHITE
+            task.delay(0.5, function() backBtn.BackgroundColor3 = C.BG_INPUT end)
+        end)
+
+        rows[player.Name] = { Frame = r, Name = player.Name }
+        renderRows()
+    end
+
+    local function removeRow(player)
+        if rows[player.Name] then rows[player.Name].Frame:Destroy(); rows[player.Name] = nil; renderRows() end
+    end
+
+    for _, p in ipairs(Players:GetPlayers()) do addRow(p) end
+    Players.PlayerAdded:Connect(function(p) task.wait(0.3); addRow(p) end)
+    Players.PlayerRemoving:Connect(removeRow)
+
+    search:GetPropertyChangedSignal("Text"):Connect(function()
+        searchText = search.Text
+        renderRows()
+    end)
+
+    cls.MouseButton1Click:Connect(function() fp:Destroy(); FloatingWhitelistPanel = nil end)
+    FloatingWhitelistPanel = fp
+end
+
+-----------------------------------------------------------
+-- TP / SPEC FUNCS
+-----------------------------------------------------------
+local function findBestCharacterPart(char)
+    if not char then return nil end
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    if hum and hum.RootPart and hum.RootPart.Parent then return hum.RootPart end
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if hrp and hrp:IsA("BasePart") then return hrp end
+    local candidates = { "UpperTorso", "LowerTorso", "Torso", "Head" }
+    for _, name in ipairs(candidates) do
+        local p = char:FindFirstChild(name)
+        if p and p:IsA("BasePart") then return p end
+    end
+    if char.PrimaryPart then return char.PrimaryPart end
+    for _, d in ipairs(char:GetDescendants()) do if d:IsA("BasePart") then return d end end
+    return nil
+end
+
+local function waitForCharacter(player, timeout)
+    timeout = timeout or 4
+    local t0 = tick()
+    while tick() - t0 < timeout do
+        if player.Character then
+            local part = findBestCharacterPart(player.Character)
+            if part then return part end
+        end
+        task.wait(0.1)
+    end
+    return nil
+end
+
+function teleportToPlayer(targetPlayer)
+    if not targetPlayer or targetPlayer == LocalPlayer then return false, "Invalido" end
+    local myChar = LocalPlayer.Character
+    if not myChar then return false, "Voce nao tem personagem" end
+    local targetPart = waitForCharacter(targetPlayer, 4)
+    if not targetPart then return false, "Alvo sem BasePart" end
+    saveCurrentPosition()
+    local myHrp = myChar:FindFirstChild("HumanoidRootPart")
+    if not myHrp then return false, "Voce sem HumanoidRootPart" end
+    local targetPos = targetPart.Position + Vector3.new(0, 3, 0)
+    local ok = pcall(function() myChar:PivotTo(CFrame.new(targetPos)) end)
+    if not ok then pcall(function() myHrp.CFrame = CFrame.new(targetPos) end) end
+    pcall(function()
+        myHrp.Velocity = Vector3.new(0, 0, 0)
+        myHrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+    end)
+    return true, "OK"
+end
+
+function spectatePlayer(targetPlayer)
+    if not targetPlayer or targetPlayer == LocalPlayer then return false, "Invalido" end
+    local tgtPart = waitForCharacter(targetPlayer, 4)
+    if not tgtPart then
+        local tgtChar = targetPlayer.Character
+        if tgtChar then
+            local hum = tgtChar:FindFirstChildOfClass("Humanoid")
+            if hum then tgtPart = hum end
+        end
+    end
+    if not tgtPart then return false, "Alvo sem parte valida" end
+    SpectateTarget = targetPlayer
+    if Workspace.CurrentCamera then Workspace.CurrentCamera.CameraSubject = tgtPart end
+    return true, "OK"
+end
+
+-----------------------------------------------------------
+-- CLICK TP
+-----------------------------------------------------------
+local function setupClickTP()
+    if clickTPConnection then clickTPConnection:Disconnect(); clickTPConnection = nil end
+    if not Config.Player.ClickTPEnabled then return end
+    clickTPConnection = UserInputService.InputBegan:Connect(function(input, gpe)
+        if gpe then return end
+        if input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
+        if not Config.Player.ClickTPEnabled then return end
+        local myChar = LocalPlayer.Character
+        if not myChar then return end
+        local myHrp = myChar:FindFirstChild("HumanoidRootPart")
+        if not myHrp then return end
+        local cam = Workspace.CurrentCamera
+        if not cam then return end
+        local mousePos = UserInputService:GetMouseLocation()
+        local ray = cam:ViewportPointToRay(mousePos.X, mousePos.Y)
+        local rp = RaycastParams.new()
+        rp.FilterType = Enum.RaycastFilterType.Exclude
+        rp.FilterDescendantsInstances = { myChar }
+        local result = Workspace:Raycast(ray.Origin, ray.Direction * 500, rp)
+        if result and result.Position then
+            saveCurrentPosition()
+            local targetPos = result.Position + Vector3.new(0, 3, 0)
+            pcall(function() myChar:PivotTo(CFrame.new(targetPos)) end)
+            pcall(function() myHrp.CFrame = CFrame.new(targetPos) end)
+        end
+    end)
+end
+_G.FRH_SetupClickTP = setupClickTP
+
+-----------------------------------------------------------
+-- NOCLIP
+-----------------------------------------------------------
+local function applyNoclip()
+    local char = LocalPlayer.Character
+    if not char then return end
+    for _, part in ipairs(char:GetDescendants()) do
+        if part:IsA("BasePart") then
+            if noclipPartsCache[part] == nil then noclipPartsCache[part] = part.CanCollide end
+            part.CanCollide = false
+        end
+    end
+end
+
+local function removeNoclip()
+    for part, orig in pairs(noclipPartsCache) do if part and part.Parent then pcall(function() part.CanCollide = orig end) end end
+    noclipPartsCache = {}
+    local char = LocalPlayer.Character
+    if char then
+        for _, part in ipairs(char:GetDescendants()) do
+            if part:IsA("BasePart") then
+                local bodyParts = {Head=true,Torso=true,UpperTorso=true,LowerTorso=true,HumanoidRootPart=true,LeftUpperArm=true,RightUpperArm=true,LeftLowerArm=true,RightLowerArm=true,LeftHand=true,RightHand=true,LeftUpperLeg=true,RightUpperLeg=true,LeftLowerLeg=true,RightLowerLeg=true,LeftFoot=true,RightFoot=true}
+                if bodyParts[part.Name] then pcall(function() part.CanCollide = true end) end
+            end
+        end
+    end
+end
+
+_G.FRH_NoclipLoop = RunService.Stepped:Connect(function()
+    if Config.Player.NoclipEnabled then
+        if not noclipActive then noclipActive = true; noclipPartsCache = {} end
+        applyNoclip()
+    else
+        if noclipActive then noclipActive = false; removeNoclip() end
+    end
+end)
+
+LocalPlayer.CharacterAdded:Connect(function()
+    noclipPartsCache = {}
+    if Config.Player.NoclipEnabled then task.wait(0.5); applyNoclip() end
+end)
+
+-----------------------------------------------------------
+-- FLY (personagem)
+-----------------------------------------------------------
+local function startAdminFly()
+    if flyConnection then flyConnection:Disconnect() end
+    if flyBV then pcall(function() flyBV:Destroy() end); flyBV = nil end
+    if flyBG then pcall(function() flyBG:Destroy() end); flyBG = nil end
+    local char = LocalPlayer.Character
+    if not char then return end
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    if hum then hum.Sit = false; hum.PlatformStand = true end
+    local seat = hum and hum.SeatPart
+    if seat then hum.Sit = false; task.wait(0.1) end
+    flyBV = Instance.new("BodyVelocity")
+    flyBV.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+    flyBV.Velocity = Vector3.new(0, 0, 0); flyBV.P = 1250; flyBV.Parent = hrp
+    flyBG = Instance.new("BodyGyro")
+    flyBG.MaxTorque = Vector3.new(9e9, 9e9, 9e9); flyBG.P = 1000; flyBG.D = 50
+    flyBG.CFrame = hrp.CFrame; flyBG.Parent = hrp
+    flyActive = true
+    if flySeatConnection then flySeatConnection:Disconnect(); flySeatConnection = nil end
+    flySeatConnection = RunService.Heartbeat:Connect(function()
+        if not Config.Player.FlyEnabled then return end
+        local c = LocalPlayer.Character
+        if not c then return end
+        local h = c:FindFirstChildOfClass("Humanoid")
+        if h and h.SeatPart then h.Sit = false; h.PlatformStand = true end
+    end)
+    flyConnection = RunService.RenderStepped:Connect(function()
+        if not Config.Player.FlyEnabled then return end
+        local c = LocalPlayer.Character
+        if not c then return end
+        local r = c:FindFirstChild("HumanoidRootPart")
+        local h = c:FindFirstChildOfClass("Humanoid")
+        if not r or not flyBV or not flyBG then return end
+        if h then h.PlatformStand = true; if h.Sit then h.Sit = false end end
+        local cam = Workspace.CurrentCamera
+        if not cam then return end
+        local speed = Config.Player.FlySpeed
+        local moveDir = Vector3.new(0, 0, 0)
+        if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveDir = moveDir + cam.CFrame.LookVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.S) then moveDir = moveDir - cam.CFrame.LookVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveDir = moveDir - cam.CFrame.RightVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveDir = moveDir + cam.CFrame.RightVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then moveDir = moveDir + Vector3.new(0, 1, 0) end
+        if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then moveDir = moveDir - Vector3.new(0, 1, 0) end
+        if moveDir.Magnitude > 0 then moveDir = moveDir.Unit end
+        flyBV.Velocity = moveDir * speed
+        flyBG.CFrame = cam.CFrame
+    end)
+end
+
+local function stopAdminFly()
+    flyActive = false
+    if flyConnection then pcall(function() flyConnection:Disconnect() end); flyConnection = nil end
+    if flySeatConnection then pcall(function() flySeatConnection:Disconnect() end); flySeatConnection = nil end
+    if flyBV then pcall(function() flyBV:Destroy() end); flyBV = nil end
+    if flyBG then pcall(function() flyBG:Destroy() end); flyBG = nil end
+    local char = LocalPlayer.Character
+    if char then
+        local hum = char:FindFirstChildOfClass("Humanoid")
+        if hum then hum.PlatformStand = false end
+    end
+end
+
+_G.FRH_FlyLoop = RunService.Heartbeat:Connect(function()
+    if Config.Player.FlyEnabled then if not flyActive then startAdminFly() end
+    else if flyActive then stopAdminFly() end end
+end)
+
+LocalPlayer.CharacterAdded:Connect(function()
+    if flyActive then stopAdminFly(); task.wait(0.3); if Config.Player.FlyEnabled then startAdminFly() end end
+end)
+
+-----------------------------------------------------------
+-- FLY CAR
+-----------------------------------------------------------
+local flyCarVehicle = nil
+local flyCarSavedAnchors = {}
+local flyCarActive = false
+
+local function getFlyCarVehicle()
+    local char = LocalPlayer.Character
+    if not char then return nil end
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    if not hum or not hum.SeatPart then return nil end
+    return hum.SeatPart:FindFirstAncestorWhichIsA("Model")
+end
+
+local function getFlyCarRootPart(veh)
+    if not veh then return nil end
+    if veh.PrimaryPart then return veh.PrimaryPart end
+    local best, bestSize = nil, 0
+    for _, p in ipairs(veh:GetDescendants()) do
+        if p:IsA("BasePart") and not p.Massless then
+            local s = p.Size.X * p.Size.Y * p.Size.Z
+            if s > bestSize then best, bestSize = p, s end
+        end
+    end
+    return best
+end
+
+local function flyCarStart(veh)
+    if not veh then return end
+    flyCarVehicle = veh
+    flyCarSavedAnchors = {}
+    for _, p in ipairs(veh:GetDescendants()) do
+        if p:IsA("BasePart") then
+            table.insert(flyCarSavedAnchors, {part = p, anchored = p.Anchored})
+            p.Anchored = true
+        end
+    end
+    if LocalPlayer.Character then
+        local hrp = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        if hrp then hrp.Anchored = true end
+    end
+    flyCarActive = true
+end
+
+local function flyCarStop()
+    for _, d in ipairs(flyCarSavedAnchors) do
+        if d.part and d.part.Parent then d.part.Anchored = d.anchored end
+    end
+    flyCarSavedAnchors = {}
+    if LocalPlayer.Character then
+        local hrp = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        if hrp then hrp.Anchored = false end
+    end
+    flyCarVehicle = nil
+    flyCarActive = false
+end
+
+_G.FRH_FlyCarLoop = RunService.RenderStepped:Connect(function(dt)
+    if not Config.Player.FlyCarEnabled then
+        if flyCarActive then flyCarStop() end
+        return
+    end
+    if not flyCarVehicle then
+        local veh = getFlyCarVehicle()
+        if veh then flyCarStart(veh) end
+        return
+    end
+    if not flyCarVehicle.Parent then flyCarStop(); return end
+    local currentVeh = getFlyCarVehicle()
+    if currentVeh ~= flyCarVehicle then
+        flyCarStop()
+        if currentVeh then flyCarStart(currentVeh) end
+        return
+    end
+
+    local cam = Workspace.CurrentCamera
+    if not cam then return end
+    local look = cam.CFrame.LookVector
+    local right = cam.CFrame.RightVector
+    local up = Vector3.new(0, 1, 0)
+
+    local moveDir = Vector3.new(0, 0, 0)
+    if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveDir = moveDir + look end
+    if UserInputService:IsKeyDown(Enum.KeyCode.S) then moveDir = moveDir - look end
+    if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveDir = moveDir - right end
+    if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveDir = moveDir + right end
+    if UserInputService:IsKeyDown(Enum.KeyCode.Space) then moveDir = moveDir + up end
+    if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) or UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
+        moveDir = moveDir - up
+    end
+
+    if moveDir.Magnitude < 0.05 then return end
+    local step = moveDir.Unit * Config.Player.FlyCarSpeed * dt
+
+    for _, p in ipairs(flyCarVehicle:GetDescendants()) do
+        if p:IsA("BasePart") and p.Anchored then
+            p.CFrame = p.CFrame + step
+        end
+    end
+    local char = LocalPlayer.Character
+    if char then
+        local hrp = char:FindFirstChild("HumanoidRootPart")
+        if hrp and hrp.Anchored then hrp.CFrame = hrp.CFrame + step end
+    end
+end)
+
+LocalPlayer.CharacterAdded:Connect(function() flyCarStop() end)
+
+-----------------------------------------------------------
+-- ESTICA TELA (persiste após fechar painel)
+-----------------------------------------------------------
+local function createStretchScreenPanel()
+    if StretchScreenPanel then StretchScreenPanel:Destroy() end
+
+    local fp = Instance.new("Frame")
+    fp.Name = "FRH_StretchScreenPanel"
+    fp.Size = UDim2.new(0, 280, 0, 100)
+    fp.Position = UDim2.new(0.5, -140, 0.5, -50)
+    fp.BackgroundColor3 = C.BG_CARD
+    fp.BorderSizePixel = 0
+    fp.ZIndex = 50
+    fp.Active = true
+    fp.Draggable = false
+    fp.Parent = ScreenGui
+    Instance.new("UICorner", fp).CornerRadius = UDim.new(0, 8)
+    Instance.new("UIStroke", fp).Color = C.BORDER
+
+    local header = Instance.new("Frame")
+    header.Name = "Header"
+    header.Size = UDim2.new(1, 0, 0, 26)
+    header.BackgroundColor3 = C.BG_INPUT
+    header.BorderSizePixel = 0
+    header.Parent = fp
+    Instance.new("UICorner", header).CornerRadius = UDim.new(0, 8)
+
+    local ht = Instance.new("TextLabel")
+    ht.Size = UDim2.new(1, -60, 1, 0)
+    ht.Position = UDim2.new(0, 8, 0, 0)
+    ht.BackgroundTransparency = 1
+    ht.Text = "ESTICA TELA"
+    ht.TextColor3 = C.WHITE
+    ht.Font = FONT_HEADER
+    ht.TextSize = 10
+    ht.TextXAlignment = Enum.TextXAlignment.Left
+    ht.Parent = header
+
+    local cls = Instance.new("TextButton")
+    cls.Size = UDim2.new(0, 22, 0, 22)
+    cls.Position = UDim2.new(1, -26, 0, 2)
+    cls.BackgroundColor3 = C.BLACK
+    cls.BorderSizePixel = 0
+    cls.Text = "X"
+    cls.TextColor3 = C.WHITE
+    cls.Font = FONT_HEADER
+    cls.TextSize = 9
+    cls.Parent = header
+    Instance.new("UICorner", cls).CornerRadius = UDim.new(0, 3)
+
+    local sValue = Instance.new("TextLabel")
+    sValue.Size = UDim2.new(1, -16, 0, 16)
+    sValue.Position = UDim2.new(0, 8, 0, 32)
+    sValue.BackgroundTransparency = 1
+    sValue.Text = "Intensidade: " .. tostring(Config.World.StretchIntensity)
+    sValue.TextColor3 = C.WHITE
+    sValue.Font = FONT_BODY
+    sValue.TextSize = 9
+    sValue.TextXAlignment = Enum.TextXAlignment.Left
+    sValue.Parent = fp
+
+    local track = Instance.new("Frame")
+    track.Size = UDim2.new(1, -16, 0, 6)
+    track.Position = UDim2.new(0, 8, 0, 62)
+    track.BackgroundColor3 = C.BORDER
+    track.BorderSizePixel = 0
+    track.Parent = fp
+    Instance.new("UICorner", track).CornerRadius = UDim.new(1, 0)
+
+    local fill = Instance.new("Frame")
+    fill.Size = UDim2.new(Config.World.StretchIntensity / 100, 0, 1, 0)
+    fill.BackgroundColor3 = C.WHITE
+    fill.BorderSizePixel = 0
+    fill.Parent = track
+    Instance.new("UICorner", fill).CornerRadius = UDim.new(1, 0)
+
+    local thumb = Instance.new("Frame")
+    thumb.Size = UDim2.new(0, 12, 0, 12)
+    thumb.Position = UDim2.new(Config.World.StretchIntensity / 100, -6, 0.5, -6)
+    thumb.BackgroundColor3 = C.WHITE
+    thumb.BorderSizePixel = 0
+    thumb.Parent = track
+    Instance.new("UICorner", thumb).CornerRadius = UDim.new(1, 0)
+
+    local draggingStretch = false
+    local function setVal(x)
+        local a = math.clamp((x - track.AbsolutePosition.X) / track.AbsoluteSize.X, 0, 1)
+        local val = math.floor(a * 100 + 0.5)
+        Config.World.StretchIntensity = val
+        if val > 0 then Config.World.StretchEnabled = true end
+        fill.Size = UDim2.new(val / 100, 0, 1, 0)
+        thumb.Position = UDim2.new(val / 100, -6, 0.5, -6)
+        sValue.Text = "Intensidade: " .. val
+    end
+
+    track.InputBegan:Connect(function(i)
+        if i.UserInputType == Enum.UserInputType.MouseButton1 then
+            draggingStretch = true
+            setVal(i.Position.X)
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(i)
+        if draggingStretch and i.UserInputType == Enum.UserInputType.MouseMovement then
+            setVal(i.Position.X)
+        end
+    end)
+    UserInputService.InputEnded:Connect(function(i)
+        if i.UserInputType == Enum.UserInputType.MouseButton1 then
+            draggingStretch = false
+        end
+    end)
+
+    local dragActive = false
+    local dragStart = nil
+    local dragStartPos = nil
+    header.InputBegan:Connect(function(i)
+        if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+            dragActive = true; dragStart = i.Position; dragStartPos = fp.Position
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(i)
+        if dragActive and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
+            local delta = i.Position - dragStart
+            fp.Position = UDim2.new(dragStartPos.X.Scale, dragStartPos.X.Offset + delta.X, dragStartPos.Y.Scale, dragStartPos.Y.Offset + delta.Y)
+        end
+    end)
+    UserInputService.InputEnded:Connect(function(i)
+        if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+            dragActive = false
+        end
+    end)
+
+    -- ✅ Fechar painel NÃO desliga o efeito
+    cls.MouseButton1Click:Connect(function()
+        fp:Destroy()
+        StretchScreenPanel = nil
+    end)
+
+    StretchScreenPanel = fp
+end
+
+_G.FRH_StretchLoop = RunService.RenderStepped:Connect(function()
+    if not Camera then return end
+    if Config.World.StretchIntensity > 0 then
+        local baseFOV = Config.Visuals.FOV or 70
+        Camera.FieldOfView = baseFOV + (Config.World.StretchIntensity / 100) * 100
+    end
+end)
+
+-----------------------------------------------------------
+-- CROSSHAIR
+-----------------------------------------------------------
+local function clearCrosshairParts()
+    for _, p in ipairs(CrosshairParts) do pcall(function() p:Destroy() end) end
+    CrosshairParts = {}
+end
+
+local function makeCrossPart(parent, sx, sy, px, py, color)
+    local p = Instance.new("Frame")
+    p.Size = UDim2.new(0, sx, 0, sy); p.Position = UDim2.new(0.5, px, 0.5, py)
+    p.AnchorPoint = Vector2.new(0.5, 0.5); p.BackgroundColor3 = color
+    p.BorderSizePixel = 0; p.ZIndex = 11; p.Parent = parent
+    table.insert(CrosshairParts, p); return p
+end
+
+local function updateCrosshair()
+    clearCrosshairParts()
+    if not Config.Weapon.CrosshairEnabled or Config.Weapon.CrosshairSelected == "Nenhum" then return end
+    local sel = Config.Weapon.CrosshairSelected
+    local size = Config.Weapon.CrosshairSize
+    local color = Config.Weapon.CrosshairColors[sel] or Color3.fromRGB(255, 255, 255)
+    local scale = size / 24
+
+    if sel == "CROSSHAIR 1" then
+        local dot = Instance.new("Frame")
+        dot.Size = UDim2.new(0, math.max(4, 6*scale), 0, math.max(4, 6*scale))
+        dot.Position = UDim2.new(0.5, 0, 0.5, 0); dot.AnchorPoint = Vector2.new(0.5, 0.5)
+        dot.BackgroundColor3 = color; dot.BorderSizePixel = 0; dot.ZIndex = 11; dot.Parent = CrosshairContainer
+        Instance.new("UICorner", dot).CornerRadius = UDim.new(1, 0)
+        table.insert(CrosshairParts, dot)
+    elseif sel == "CROSSHAIR 2" then
+        local t = 2; local g = 4 * scale; local sz = size
+        makeCrossPart(CrosshairContainer, sz, t, -(sz/2 + g), 0, color)
+        makeCrossPart(CrosshairContainer, sz, t, (sz/2 + g), 0, color)
+        makeCrossPart(CrosshairContainer, t, sz, 0, -(sz/2 + g), color)
+        makeCrossPart(CrosshairContainer, t, sz, 0, (sz/2 + g), color)
+        makeCrossPart(CrosshairContainer, t+2, t+2, 0, 0, color)
+    elseif sel == "CROSSHAIR 3" then
+        local t = 2; local arm = 24 * scale; local legLen = 20 * scale
+        makeCrossPart(CrosshairContainer, arm, t, 0, -legLen, color)
+        makeCrossPart(CrosshairContainer, t, legLen + t, 0, -(legLen/2), color)
+    elseif sel == "CROSSHAIR 4" then
+        local circle = Instance.new("Frame")
+        circle.Size = UDim2.new(0, size, 0, size); circle.Position = UDim2.new(0.5, 0, 0.5, 0)
+        circle.AnchorPoint = Vector2.new(0.5, 0.5); circle.BackgroundTransparency = 1
+        circle.ZIndex = 11; circle.Parent = CrosshairContainer
+        Instance.new("UICorner", circle).CornerRadius = UDim.new(1, 0)
+        local s = Instance.new("UIStroke", circle); s.Color = color; s.Thickness = 2
+        table.insert(CrosshairParts, circle)
+        local dot = Instance.new("Frame")
+        dot.Size = UDim2.new(0, 4, 0, 4); dot.Position = UDim2.new(0.5, 0, 0.5, 0)
+        dot.AnchorPoint = Vector2.new(0.5, 0.5); dot.BackgroundColor3 = color; dot.BorderSizePixel = 0; dot.ZIndex = 11
+        dot.Parent = CrosshairContainer
+        Instance.new("UICorner", dot).CornerRadius = UDim.new(1, 0)
+        table.insert(CrosshairParts, dot)
+    end
+end
+_G.FRH_UpdateCrosshair = updateCrosshair
+
+-----------------------------------------------------------
+-- BUILD TABS
+-----------------------------------------------------------
+local function buildAimbotTab()
+    local ap = TabPages.AIMBOT
+    local main = Instance.new("Frame"); main.Size = UDim2.new(1, 0, 0, 0); main.AutomaticSize = Enum.AutomaticSize.Y; main.BackgroundTransparency = 1; main.LayoutOrder = Order(); main.Parent = ap
+    local leftCol = Instance.new("Frame"); leftCol.Size = UDim2.new(0.5, -6, 0, 0); leftCol.AutomaticSize = Enum.AutomaticSize.Y; leftCol.BackgroundTransparency = 1; leftCol.Parent = main
+    local ll1 = Instance.new("UIListLayout", leftCol); ll1.SortOrder = Enum.SortOrder.LayoutOrder; ll1.Padding = UDim.new(0, 2)
+    Instance.new("UIPadding", leftCol).PaddingRight = UDim.new(0, 4)
+    local rightCol = Instance.new("Frame"); rightCol.Size = UDim2.new(0.5, -6, 0, 0); rightCol.Position = UDim2.new(0.5, 6, 0, 0); rightCol.AutomaticSize = Enum.AutomaticSize.Y; rightCol.BackgroundTransparency = 1; rightCol.Parent = main
+    local ll2 = Instance.new("UIListLayout", rightCol); ll2.SortOrder = Enum.SortOrder.LayoutOrder; ll2.Padding = UDim.new(0, 2)
+    Instance.new("UIPadding", rightCol).PaddingLeft = UDim.new(0, 4)
+
+    CreateLabel(leftCol, "AIMBOT", C.WHITE); CreateDivider(leftCol)
+
+    local aimbotRow = Instance.new("Frame")
+    aimbotRow.Size = UDim2.new(1, 0, 0, 20); aimbotRow.BackgroundTransparency = 1
+    aimbotRow.LayoutOrder = Order(); aimbotRow.Parent = leftCol
+
+    local abBox = Instance.new("Frame")
+    abBox.Size = UDim2.new(0, 13, 0, 13); abBox.Position = UDim2.new(0, 2, 0.5, -6)
+    abBox.BackgroundColor3 = C.BG_INPUT; abBox.BorderSizePixel = 0; abBox.Parent = aimbotRow
+    Instance.new("UICorner", abBox).CornerRadius = UDim.new(0, 3)
+    local abStroke = Instance.new("UIStroke", abBox); abStroke.Color = C.BORDER_LT; abStroke.Thickness = 1.5
+
+    local abLbl = Instance.new("TextLabel")
+    abLbl.Size = UDim2.new(1, -80, 1, 0); abLbl.Position = UDim2.new(0, 20, 0, 0); abLbl.BackgroundTransparency = 1
+    abLbl.Text = "Enable Aimbot"; abLbl.TextColor3 = C.WHITE; abLbl.Font = FONT_BODY; abLbl.TextSize = 10
+    abLbl.TextXAlignment = Enum.TextXAlignment.Left; abLbl.Parent = aimbotRow
+
+    local abState = Config.Aimbot.Enabled
+    local function renderAb()
+        abBox.BackgroundColor3 = abState and C.WHITE or C.BG_INPUT
+        abStroke.Color = abState and C.WHITE or C.BORDER_LT
+    end
+    renderAb()
+
+    local abHit = Instance.new("TextButton")
+    abHit.Size = UDim2.new(1, -70, 1, 0); abHit.BackgroundTransparency = 1; abHit.Text = ""; abHit.ZIndex = 5; abHit.Parent = aimbotRow
+    abHit.MouseButton1Click:Connect(function()
+        abState = not abState; Config.Aimbot.Enabled = abState; renderAb()
+        if not abState then Config.Aimbot._toggled = false; Config.Aimbot._stickyTarget = nil end
+    end)
+
+    local abBindBtn = Instance.new("TextButton")
+    abBindBtn.Size = UDim2.new(0, 60, 0, 15); abBindBtn.Position = UDim2.new(1, -64, 0.5, -7.5)
+    abBindBtn.BackgroundColor3 = C.BG_INPUT; abBindBtn.BorderSizePixel = 0
+    abBindBtn.Text = "[ " .. getBindName(Config.Aimbot.Keybind) .. " ]"
+    abBindBtn.TextColor3 = C.WHITE; abBindBtn.Font = FONT_HEADER; abBindBtn.TextSize = 8; abBindBtn.Parent = aimbotRow
+    Instance.new("UICorner", abBindBtn).CornerRadius = UDim.new(0, 3)
+    Instance.new("UIStroke", abBindBtn).Color = C.BORDER_LT
+
+    local abConn
+    abBindBtn.MouseButton1Click:Connect(function()
+        if waitingForBind then
+            waitingForBind = false
+            if abConn then abConn:Disconnect(); abConn = nil end
+            abBindBtn.Text = "[ " .. getBindName(Config.Aimbot.Keybind) .. " ]"
+            abBindBtn.BackgroundColor3 = C.BG_INPUT; abBindBtn.TextColor3 = C.WHITE
+            return
+        end
+        waitingForBind = true
+        abBindBtn.Text = "[ ... ]"; abBindBtn.TextColor3 = C.WHITE; abBindBtn.BackgroundColor3 = C.BLACK
+        if abConn then abConn:Disconnect(); abConn = nil end
+        abConn = UserInputService.InputBegan:Connect(function(inp, gp)
+            if not waitingForBind then return end
+            local nb = nil
+            if inp.UserInputType == Enum.UserInputType.Keyboard then
+                if inp.KeyCode ~= Enum.KeyCode.Unknown then nb = inp.KeyCode end
+            elseif inp.UserInputType == Enum.UserInputType.MouseButton1 then nb = Enum.UserInputType.MouseButton1
+            elseif inp.UserInputType == Enum.UserInputType.MouseButton2 then nb = Enum.UserInputType.MouseButton2
+            elseif inp.UserInputType == Enum.UserInputType.MouseButton3 then nb = Enum.UserInputType.MouseButton3 end
+            if not nb then return end
+            Config.Aimbot.Keybind = nb
+            waitingForBind = false
+            abBindBtn.Text = "[ " .. getBindName(nb) .. " ]"
+            abBindBtn.TextColor3 = C.WHITE; abBindBtn.BackgroundColor3 = C.BG_INPUT
+            if abConn then abConn:Disconnect(); abConn = nil end
+        end)
+    end)
+
+    CreateToggle(leftCol, "Aimlock", Config.Aimbot.Aimlock, function(v) Config.Aimbot.Aimlock = v end)
+    CreateToggle(leftCol, "Ignore Dead", Config.Aimbot.IgnoreDead, function(v) Config.Aimbot.IgnoreDead = v end)
+    CreateToggle(leftCol, "Sticky Aimbot", Config.Aimbot.StickyAimbot, function(v) Config.Aimbot.StickyAimbot = v; if not v then Config.Aimbot._stickyTarget = nil end end)
+    CreateToggle(leftCol, "Draw FOV", Config.Aimbot.DrawFOV, function(v) Config.Aimbot.DrawFOV = v end)
+    CreateToggle(leftCol, "NPC Check", Config.Aimbot.NPC_Check, function(v) Config.Aimbot.NPC_Check = v end)
+    CreateDivider(leftCol)
+    CreateToggle(leftCol, "Invisible Check", Config.Aimbot.InvisibleCheck, function(v) Config.Aimbot.InvisibleCheck = v end)
+    local hz = CreateClickSection(leftCol, "HUMANIZE")
+    createCycleButton(hz.Content, "Parte", { "Head", "Torso", "Pelvis" }, Config.Aimbot.Humanize, function(v) Config.Aimbot.Humanize = v end)
+    CreateDivider(leftCol)
+    CreateLabel(leftCol, "HITBOX EXPANDER", C.WHITE)
+    CreateToggle(leftCol, "Hitbox Expander", Config.Hitbox.Enabled, function(v) Config.Hitbox.Enabled = v end)
+    CreateToggle(leftCol, "Team Check (Hitbox)", Config.Hitbox.TeamCheck, function(v) Config.Hitbox.TeamCheck = v end)
+    CreateSlider(leftCol, "Cabeca", 1, 25, Config.Hitbox.HeadSize, "x", function(v) Config.Hitbox.HeadSize = v end)
+    CreateSlider(leftCol, "Torso", 1, 25, Config.Hitbox.TorsoSize, "x", function(v) Config.Hitbox.TorsoSize = v end)
+    CreateSlider(leftCol, "trans hitbox", 0, 5, Config.Hitbox.Transparency, "", function(v) Config.Hitbox.Transparency = v end)
+
+    CreateDivider(rightCol)
+    CreateLabel(rightCol, "DETECTE AIMBOT", C.WHITE)
+
+    -- ✅ FIX: Modo como gaveta
+    local modeHeaderBtn = Instance.new("TextButton")
+    modeHeaderBtn.Size = UDim2.new(1, 0, 0, 22)
+    modeHeaderBtn.BackgroundColor3 = C.BG_INPUT
+    modeHeaderBtn.BorderSizePixel = 0
+    modeHeaderBtn.Text = "  " .. Config.Aimbot.HoldMode .. "  v"
+    modeHeaderBtn.TextColor3 = C.WHITE
+    modeHeaderBtn.Font = FONT_HEADER
+    modeHeaderBtn.TextSize = 9
+    modeHeaderBtn.TextXAlignment = Enum.TextXAlignment.Left
+    modeHeaderBtn.LayoutOrder = Order()
+    modeHeaderBtn.Parent = rightCol
+    Instance.new("UICorner", modeHeaderBtn).CornerRadius = UDim.new(0, 4)
+    Instance.new("UIStroke", modeHeaderBtn).Color = C.BORDER_LT
+
+    local modeDrawer = Instance.new("Frame")
+    modeDrawer.Size = UDim2.new(1, 0, 0, 0)
+    modeDrawer.BackgroundColor3 = C.BG_CARD
+    modeDrawer.BorderSizePixel = 0
+    modeDrawer.Visible = false
+    modeDrawer.LayoutOrder = Order()
+    modeDrawer.Parent = rightCol
+    Instance.new("UICorner", modeDrawer).CornerRadius = UDim.new(0, 4)
+    Instance.new("UIStroke", modeDrawer).Color = C.BORDER
+    local modeLst = Instance.new("UIListLayout", modeDrawer)
+    modeLst.SortOrder = Enum.SortOrder.LayoutOrder
+    modeLst.Padding = UDim.new(0, 1)
+    local modePad = Instance.new("UIPadding", modeDrawer)
+    modePad.PaddingTop = UDim.new(0, 3)
+    modePad.PaddingBottom = UDim.new(0, 3)
+
+    local modeOptions = {}
+    local modeOpen = false
+
+    local function applyModeColor()
+        for name, row in pairs(modeOptions) do
+            if name == Config.Aimbot.HoldMode then
+                row.BackgroundColor3 = C.WHITE
+                row.TextColor3 = C.BLACK
+            else
+                row.BackgroundColor3 = C.BG_INPUT
+                row.TextColor3 = C.WHITE
+            end
+        end
+    end
+
+    local function toggleDrawer()
+        modeOpen = not modeOpen
+        modeDrawer.Visible = modeOpen
+        modeDrawer.Size = modeOpen and UDim2.new(1, 0, 0, 66) or UDim2.new(1, 0, 0, 0)
+        modeHeaderBtn.Text = "  " .. Config.Aimbot.HoldMode .. "  " .. (modeOpen and "^" or "v")
+        updateCanvas(TabPages[CurrentTab])
+    end
+
+    local function makeModeRow(name)
+        local b = Instance.new("TextButton")
+        b.Size = UDim2.new(1, -6, 0, 18)
+        b.BorderSizePixel = 0
+        b.Text = "  " .. name
+        b.TextXAlignment = Enum.TextXAlignment.Left
+        b.Font = FONT_HEADER
+        b.TextSize = 9
+        b.Parent = modeDrawer
+        Instance.new("UICorner", b).CornerRadius = UDim.new(0, 3)
+        b.MouseButton1Click:Connect(function()
+            Config.Aimbot.HoldMode = name
+            Config.Aimbot._toggled = false
+            modeHeaderBtn.Text = "  " .. name .. "  " .. (modeOpen and "^" or "v")
+            applyModeColor()
+        end)
+        modeOptions[name] = b
+    end
+
+    makeModeRow("Hold")
+    makeModeRow("Toggle")
+    makeModeRow("Always")
+    applyModeColor()
+
+    modeHeaderBtn.MouseButton1Click:Connect(toggleDrawer)
+
+    CreateDivider(rightCol)
+    CreateLabel(rightCol, "FOV", C.WHITE)
+    CreateSlider(rightCol, "FOV Size", 10, 5000, Config.Aimbot.FOV, "", function(v) Config.Aimbot.FOV = v end)
+    CreateSlider(rightCol, "Max Distancia", 50, 2000, Config.Aimbot.MaxDistance, "m", function(v) Config.Aimbot.MaxDistance = v end)
+    CreateSlider(rightCol, "Smoothing", 1, 100, math.floor(Config.Aimbot.Smoothing * 100), "%", function(v)
+        Config.Aimbot.Smoothing = v / 100
+    end)
+    CreateDivider(rightCol)
+    CreateLabel(rightCol, "CHECKS", C.WHITE)
+    CreateToggle(rightCol, "Team Check", Config.Aimbot.TeamCheck, function(v) Config.Aimbot.TeamCheck = v end)
+    CreateToggle(rightCol, "Wall Check", Config.Aimbot.WallCheck, function(v) Config.Aimbot.WallCheck = v end)
+
+    local wlBtn = Instance.new("TextButton")
+    wlBtn.Size = UDim2.new(1, 0, 0, 24); wlBtn.BackgroundColor3 = C.BG_CARD; wlBtn.BorderSizePixel = 0
+    wlBtn.Text = "  WHITELIST (IGNORAR AIMBOT/HITBOX)"; wlBtn.TextColor3 = C.WHITE; wlBtn.Font = FONT_HEADER; wlBtn.TextSize = 9
+    wlBtn.TextXAlignment = Enum.TextXAlignment.Left; wlBtn.LayoutOrder = Order(); wlBtn.Parent = rightCol
+    Instance.new("UICorner", wlBtn).CornerRadius = UDim.new(0, 4); Instance.new("UIStroke", wlBtn).Color = C.BORDER
+    wlBtn.MouseButton1Click:Connect(function()
+        if AimbotWhitelistPanel then AimbotWhitelistPanel:Destroy(); AimbotWhitelistPanel = nil
+        else createAimbotWhitelist() end
+    end)
+end
+
+local function buildVisualTab()
+    local vp = TabPages.VISUAL
+    local vmain = Instance.new("Frame"); vmain.Size = UDim2.new(1, 0, 0, 0); vmain.AutomaticSize = Enum.AutomaticSize.Y; vmain.BackgroundTransparency = 1; vmain.LayoutOrder = Order(); vmain.Parent = vp
+    local vLeft = Instance.new("Frame"); vLeft.Size = UDim2.new(0.5, -6, 0, 0); vLeft.AutomaticSize = Enum.AutomaticSize.Y; vLeft.BackgroundTransparency = 1; vLeft.Parent = vmain
+    local vl1 = Instance.new("UIListLayout", vLeft); vl1.SortOrder = Enum.SortOrder.LayoutOrder; vl1.Padding = UDim.new(0, 2)
+    Instance.new("UIPadding", vLeft).PaddingRight = UDim.new(0, 4)
+    local vRight = Instance.new("Frame"); vRight.Size = UDim2.new(0.5, -6, 0, 0); vRight.Position = UDim2.new(0.5, 6, 0, 0); vRight.AutomaticSize = Enum.AutomaticSize.Y; vRight.BackgroundTransparency = 1; vRight.Parent = vmain
+    local vl2 = Instance.new("UIListLayout", vRight); vl2.SortOrder = Enum.SortOrder.LayoutOrder; vl2.Padding = UDim.new(0, 2)
+    Instance.new("UIPadding", vRight).PaddingLeft = UDim.new(0, 4)
+    CreateLabel(vLeft, "ESP", C.WHITE); CreateDivider(vLeft)
+    CreateToggle(vLeft, "ESP ENABLE", ESP_Settings.ESP_Enable, function(v) ESP_Settings.ESP_Enable = v end)
+    CreateDivider(vLeft)
+    CreateLabel(vLeft, "ELEMENTOS", C.WHITE)
+    CreateToggleWithColor(vLeft, "Name", ESP_Settings.ESP_Draw_Name, "Name", function(v) ESP_Settings.ESP_Draw_Name = v end)
+    CreateToggleWithColor(vLeft, "Distance", ESP_Settings.ESP_Draw_Distance, "Distance", function(v) ESP_Settings.ESP_Draw_Distance = v end)
+    CreateToggleWithColor(vLeft, "Team", ESP_Settings.ESP_Team, "Team", function(v) ESP_Settings.ESP_Team = v end)
+
+    local boxToggleRow = Instance.new("Frame")
+    boxToggleRow.Size = UDim2.new(1, 0, 0, 20); boxToggleRow.BackgroundTransparency = 1
+    boxToggleRow.LayoutOrder = Order(); boxToggleRow.Parent = vLeft
+
+    local boxCheck = Instance.new("Frame")
+    boxCheck.Size = UDim2.new(0, 13, 0, 13); boxCheck.Position = UDim2.new(0, 2, 0.5, -6)
+    boxCheck.BackgroundColor3 = C.BG_INPUT; boxCheck.BorderSizePixel = 0; boxCheck.Parent = boxToggleRow
+    Instance.new("UICorner", boxCheck).CornerRadius = UDim.new(0, 3)
+    local boxStroke = Instance.new("UIStroke", boxCheck); boxStroke.Color = C.BORDER_LT; boxStroke.Thickness = 1.5
+
+    local boxLbl = Instance.new("TextLabel")
+    boxLbl.Size = UDim2.new(1, -50, 1, 0); boxLbl.Position = UDim2.new(0, 20, 0, 0); boxLbl.BackgroundTransparency = 1
+    boxLbl.Text = "Bounding Box"; boxLbl.TextColor3 = C.WHITE; boxLbl.Font = FONT_BODY; boxLbl.TextSize = 10
+    boxLbl.TextXAlignment = Enum.TextXAlignment.Left; boxLbl.Parent = boxToggleRow
+
+    local boxColorBtn = Instance.new("TextButton")
+    boxColorBtn.Size = UDim2.new(0, 16, 0, 16); boxColorBtn.Position = UDim2.new(1, -18, 0.5, -8)
+    boxColorBtn.BackgroundColor3 = ESP_Colors.Box; boxColorBtn.BorderSizePixel = 0; boxColorBtn.Text = ""; boxColorBtn.Parent = boxToggleRow
+    Instance.new("UICorner", boxColorBtn).CornerRadius = UDim.new(0, 3)
+    local bcs = Instance.new("UIStroke", boxColorBtn); bcs.Color = Color3.fromRGB(80,80,80); bcs.Thickness = 1
+    boxColorBtn.MouseButton1Click:Connect(function()
+        OpenColorPicker("Box", function(newColor) NotifyColorChange("Box", newColor) end)
+    end)
+    table.insert(ColorUpdateCallbacks, function(k, nc)
+        if k == "Box" or k == "Skeleton" or k == "FaceCircle" then boxColorBtn.BackgroundColor3 = nc end
+    end)
+
+    local boxDrawer = Instance.new("Frame")
+    boxDrawer.Size = UDim2.new(1, -4, 0, 22); boxDrawer.BackgroundColor3 = C.BG_INPUT
+    boxDrawer.BorderSizePixel = 0; boxDrawer.Visible = false
+    boxDrawer.LayoutOrder = Order(); boxDrawer.Parent = vLeft
+    Instance.new("UICorner", boxDrawer).CornerRadius = UDim.new(0, 4)
+    Instance.new("UIStroke", boxDrawer).Color = C.BORDER_LT
+
+    local boxModeBtn = Instance.new("TextButton")
+    boxModeBtn.Size = UDim2.new(1, -8, 1, -4); boxModeBtn.Position = UDim2.new(0, 4, 0, 2)
+    boxModeBtn.BackgroundTransparency = 1; boxModeBtn.Text = "Tipo: " .. ESP_Settings.ESP_3D_Mode
+    boxModeBtn.TextColor3 = C.WHITE; boxModeBtn.Font = FONT_HEADER; boxModeBtn.TextSize = 9; boxModeBtn.Parent = boxDrawer
+
+    boxModeBtn.MouseButton1Click:Connect(function()
+        if ESP_Settings.ESP_3D_Mode == "Box" then ESP_Settings.ESP_3D_Mode = "Corner"
+        else ESP_Settings.ESP_3D_Mode = "Box" end
+        boxModeBtn.Text = "Tipo: " .. ESP_Settings.ESP_3D_Mode
+    end)
+
+    local boxState = ESP_Settings.ESP_Box
+    local function renderBox()
+        boxCheck.BackgroundColor3 = boxState and C.WHITE or C.BG_INPUT
+        boxStroke.Color = boxState and C.WHITE or C.BORDER_LT
+        boxDrawer.Visible = boxState
+    end
+    renderBox()
+
+    local boxHit = Instance.new("TextButton")
+    boxHit.Size = UDim2.new(1, -30, 1, 0); boxHit.BackgroundTransparency = 1; boxHit.Text = ""; boxHit.ZIndex = 5; boxHit.Parent = boxToggleRow
+    boxHit.MouseButton1Click:Connect(function()
+        boxState = not boxState
+        ESP_Settings.ESP_Box = boxState
+        renderBox()
+    end)
+
+    CreateToggleWithColor(vLeft, "Weapon", ESP_Settings.ESP_Weapon, "Weapon", function(v) ESP_Settings.ESP_Weapon = v end)
+    CreateToggleWithColor(vLeft, "Health Bar", ESP_Settings.Health_Bar, "HealthBar", function(v) ESP_Settings.Health_Bar = v end)
+    CreateToggle(vLeft, "Skeleton", ESP_Settings.ESP_Skeleton, function(v) ESP_Settings.ESP_Skeleton = v end)
+    CreateToggle(vLeft, "Face Circle", ESP_Settings.ESP_Face_Circle, function(v) ESP_Settings.ESP_Face_Circle = v end)
+    CreateToggleWithColor(vLeft, "Snaplines", ESP_Settings.ESP_Snapline, "Snapline", function(v) ESP_Settings.ESP_Snapline = v end)
+    CreateLabel(vRight, "ESP CONFIG", C.WHITE); CreateDivider(vRight)
+    CreateSlider(vRight, "Max Dist ESP", 500, 6000, Config.Visuals.ESPMaxDistance, "m", function(v) Config.Visuals.ESPMaxDistance = v end)
+    CreateToggle(vRight, "NPC Check", ESP_Settings.NPC_Check, function(v) ESP_Settings.NPC_Check = v end)
+end
+
+local function buildPlayerTab()
+    local pp = TabPages.PLAYER
+    local pmain = Instance.new("Frame"); pmain.Size = UDim2.new(1, 0, 0, 0); pmain.AutomaticSize = Enum.AutomaticSize.Y; pmain.BackgroundTransparency = 1; pmain.LayoutOrder = Order(); pmain.Parent = pp
+    local pLeft = Instance.new("Frame"); pLeft.Size = UDim2.new(0.5, -6, 0, 0); pLeft.AutomaticSize = Enum.AutomaticSize.Y; pLeft.BackgroundTransparency = 1; pLeft.Parent = pmain
+    local pl1 = Instance.new("UIListLayout", pLeft); pl1.SortOrder = Enum.SortOrder.LayoutOrder; pl1.Padding = UDim.new(0, 2)
+    Instance.new("UIPadding", pLeft).PaddingRight = UDim.new(0, 4)
+    local pRight = Instance.new("Frame"); pRight.Size = UDim2.new(0.5, -6, 0, 0); pRight.Position = UDim2.new(0.5, 6, 0, 0); pRight.AutomaticSize = Enum.AutomaticSize.Y; pRight.BackgroundTransparency = 1; pRight.Parent = pmain
+    local pl2 = Instance.new("UIListLayout", pRight); pl2.SortOrder = Enum.SortOrder.LayoutOrder; pl2.Padding = UDim.new(0, 2)
+    Instance.new("UIPadding", pRight).PaddingLeft = UDim.new(0, 4)
+
+    local movRow = Instance.new("Frame"); movRow.Size = UDim2.new(1, 0, 0, 18); movRow.BackgroundTransparency = 1; movRow.LayoutOrder = Order(); movRow.Parent = pLeft
+    local movLbl = Instance.new("TextLabel")
+    movLbl.Size = UDim2.new(0.5, 0, 1, 0); movLbl.BackgroundTransparency = 1
+    movLbl.Text = "MOVIMENTO"; movLbl.TextColor3 = C.WHITE; movLbl.Font = FONT_HEADER; movLbl.TextSize = 9
+    movLbl.TextXAlignment = Enum.TextXAlignment.Left; movLbl.Parent = movRow
+    local resetBtn = Instance.new("TextButton")
+    resetBtn.Size = UDim2.new(0.45, 0, 1, 0); resetBtn.Position = UDim2.new(0.55, 0, 0, 0); resetBtn.BackgroundColor3 = C.BLACK
+    resetBtn.BorderSizePixel = 0; resetBtn.Text = "RESETAR TUDO"; resetBtn.TextColor3 = C.WHITE; resetBtn.Font = FONT_HEADER; resetBtn.TextSize = 8; resetBtn.Parent = movRow
+    Instance.new("UICorner", resetBtn).CornerRadius = UDim.new(0, 3); Instance.new("UIStroke", resetBtn).Color = C.BORDER_LT
+
+    CreateDivider(pLeft)
+    CreateToggle(pLeft, "WalkSpeed Enabled", Config.Player.WalkSpeedEnabled, function(v)
+        Config.Player.WalkSpeedEnabled = v
+        if v then
+            local char = LocalPlayer.Character; local hum = char and char:FindFirstChildOfClass("Humanoid")
+            if hum then hum.WalkSpeed = Config.Player.WalkSpeed end
+        end
+    end)
+    CreateSlider(pLeft, "WalkSpeed", 16, 500, Config.Player.WalkSpeed, "", function(v)
+        Config.Player.WalkSpeed = v
+        if Config.Player.WalkSpeedEnabled then
+            local char = LocalPlayer.Character; local hum = char and char:FindFirstChildOfClass("Humanoid")
+            if hum then hum.WalkSpeed = v end
+        end
+    end)
+    CreateDivider(pLeft)
+    CreateToggle(pLeft, "JumpPower Enabled", Config.Player.JumpPowerEnabled, function(v)
+        Config.Player.JumpPowerEnabled = v
+        if v then
+            local char = LocalPlayer.Character; local hum = char and char:FindFirstChildOfClass("Humanoid")
+            if hum then hum.UseJumpPower = true; hum.JumpPower = Config.Player.JumpPower end
+        end
+    end)
+    CreateSlider(pLeft, "JumpPower", 50, 500, Config.Player.JumpPower, "", function(v) Config.Player.JumpPower = v end)
+    CreateDivider(pLeft)
+    CreateToggle(pLeft, "Infinite Jump", Config.Player.InfiniteJump, function(v) Config.Player.InfiniteJump = v end)
+
+    CreateDivider(pLeft)
+    CreateLabel(pLeft, "FLING SYSTEM", C.WHITE)
+    CreateToggle(pLeft, "Fling Enabled", Config.Player.FlingEnabled, function(v)
+        Config.Player.FlingEnabled = v
+        local char = LocalPlayer.Character
+        refreshFlingConnection(char)
+    end)
+    CreateSlider(pLeft, "Fling Forca", 100, 1000, Config.Player.FlingForce, "", function(v) Config.Player.FlingForce = v end)
+
+    CreateDivider(pLeft)
+    CreateToggle(pLeft, "Click TP", Config.Player.ClickTPEnabled, function(v)
+        Config.Player.ClickTPEnabled = v
+        if _G.FRH_SetupClickTP then _G.FRH_SetupClickTP() end
+    end)
+
+    CreateDivider(pLeft)
+    local noclipCtrl = CreateToggleWithKeybind(pLeft, "Noclip", Config.Player.NoclipEnabled, Config.Player.NoclipKeybind,
+        function(v) Config.Player.NoclipEnabled = v end,
+        function(bind) Config.Player.NoclipKeybind = bind end)
+    _G.FRH_NoclipCtrl = noclipCtrl
+    local flyCtrl = CreateToggleWithKeybind(pLeft, "Fly", Config.Player.FlyEnabled, Config.Player.FlyKeybind,
+        function(v) Config.Player.FlyEnabled = v end,
+        function(bind) Config.Player.FlyKeybind = bind end)
+    _G.FRH_FlyCtrl = flyCtrl
+    CreateSlider(pLeft, "Fly Speed", 1, 500, Config.Player.FlySpeed, "", function(v) Config.Player.FlySpeed = v end)
+
+    CreateDivider(pLeft)
+    CreateLabel(pLeft, "FLY CAR", C.WHITE)
+    local flyCarCtrl = CreateToggleWithKeybind(pLeft, "Fly Car", Config.Player.FlyCarEnabled, Config.Player.FlyCarKeybind,
+        function(v) Config.Player.FlyCarEnabled = v end,
+        function(bind) Config.Player.FlyCarKeybind = bind end)
+    _G.FRH_FlyCarCtrl = flyCarCtrl
+    CreateSlider(pLeft, "Fly Car Speed", 0, 1000, Config.Player.FlyCarSpeed, "", function(v)
+        Config.Player.FlyCarSpeed = v
+    end)
+
+    resetBtn.MouseButton1Click:Connect(function()
+        Config.Player.WalkSpeedEnabled = false; Config.Player.JumpPowerEnabled = false
+        Config.Player.InfiniteJump = false; Config.Player.NoclipEnabled = false; Config.Player.FlyEnabled = false
+        Config.Player.ClickTPEnabled = false; Config.Player.FlingEnabled = false
+        Config.Player.FlyCarEnabled = false
+        Config.Player.WalkSpeed = 16; Config.Player.JumpPower = 50; Config.Player.FlySpeed = 50
+        Config.Player.FlingForce = 500; Config.Player.FlyCarSpeed = 500
+        local char = LocalPlayer.Character; local hum = char and char:FindFirstChildOfClass("Humanoid")
+        if hum then hum.WalkSpeed = 16; hum.UseJumpPower = true; hum.JumpPower = 50 end
+        LocalPlayer.CameraMaxZoomDistance = 128
+        if noclipCtrl then noclipCtrl.SetState(false) end
+        if flyCtrl then flyCtrl.SetState(false) end
+        if flyCarCtrl then flyCarCtrl.SetState(false) end
+        if _G.FRH_SetupClickTP then _G.FRH_SetupClickTP() end
+        refreshFlingConnection(char)
+    end)
+
+    local plBtn = Instance.new("TextButton")
+    plBtn.Size = UDim2.new(1, 0, 0, 24); plBtn.BackgroundColor3 = C.BG_CARD; plBtn.BorderSizePixel = 0
+    plBtn.Text = "  TP / SPEC / STOP / BACK"; plBtn.TextColor3 = C.WHITE; plBtn.Font = FONT_HEADER; plBtn.TextSize = 9
+    plBtn.TextXAlignment = Enum.TextXAlignment.Left; plBtn.LayoutOrder = Order(); plBtn.Parent = pRight
+    Instance.new("UICorner", plBtn).CornerRadius = UDim.new(0, 4); Instance.new("UIStroke", plBtn).Color = C.BORDER
+    plBtn.MouseButton1Click:Connect(function()
+        if FloatingWhitelistPanel then FloatingWhitelistPanel:Destroy(); FloatingWhitelistPanel = nil
+        else createFloatingWhitelist() end
+    end)
+end
+
+local function buildWeaponTab()
+    local wp = TabPages.WEAPON
+    local wmain = Instance.new("Frame")
+    wmain.Size = UDim2.new(1, 0, 0, 0); wmain.AutomaticSize = Enum.AutomaticSize.Y
+    wmain.BackgroundTransparency = 1; wmain.LayoutOrder = Order(); wmain.Parent = wp
+    local wLeft = Instance.new("Frame")
+    wLeft.Size = UDim2.new(0.5, -6, 0, 0); wLeft.AutomaticSize = Enum.AutomaticSize.Y
+    wLeft.BackgroundTransparency = 1; wLeft.Parent = wmain
+    local wl1 = Instance.new("UIListLayout", wLeft); wl1.SortOrder = Enum.SortOrder.LayoutOrder; wl1.Padding = UDim.new(0, 2)
+    Instance.new("UIPadding", wLeft).PaddingRight = UDim.new(0, 4)
+    local wRight = Instance.new("Frame")
+    wRight.Size = UDim2.new(0.5, -6, 0, 0); wRight.Position = UDim2.new(0.5, 6, 0, 0)
+    wRight.AutomaticSize = Enum.AutomaticSize.Y; wRight.BackgroundTransparency = 1; wRight.Parent = wmain
+    local wl2 = Instance.new("UIListLayout", wRight); wl2.SortOrder = Enum.SortOrder.LayoutOrder; wl2.Padding = UDim.new(0, 2)
+    Instance.new("UIPadding", wRight).PaddingLeft = UDim.new(0, 4)
+    CreateDivider(wLeft)
+    CreateToggle(wLeft, "Infinite Ammo [V]", Config.Weapon.InfiniteAmmo, function(v) Config.Weapon.InfiniteAmmo = v end)
+    CreateToggle(wLeft, "No Recoil", Config.Weapon.NoRecoil, function(v) Config.Weapon.NoRecoil = v end)
+    CreateToggle(wLeft, "No Spread", Config.Weapon.NoSpread, function(v) Config.Weapon.NoSpread = v end)
+    CreateDivider(wLeft)
+    CreateToggle(wLeft, "Fire Rate Boost", Config.Weapon.FireRate, function(v) Config.Weapon.FireRate = v end)
+    CreateToggle(wLeft, "Auto Fire", Config.Weapon.AutoFire, function(v) Config.Weapon.AutoFire = v; if _G.FRH_SetupAutoFire then _G.FRH_SetupAutoFire() end end)
+    CreateToggle(wLeft, "Damage Boost", Config.Weapon.DamageBoost, function(v) Config.Weapon.DamageBoost = v end)
+
+    local crossSection = CreateClickSection(wRight, "CROSSHAIRS")
+
+    local chEnableToggle = Instance.new("Frame")
+    chEnableToggle.Size = UDim2.new(1, 0, 0, 20); chEnableToggle.BackgroundTransparency = 1
+    chEnableToggle.Parent = crossSection.Content; chEnableToggle.LayoutOrder = Order()
+    local chBox = Instance.new("Frame")
+    chBox.Size = UDim2.new(0, 13, 0, 13); chBox.Position = UDim2.new(0, 2, 0.5, -6)
+    chBox.BackgroundColor3 = C.BG_INPUT; chBox.BorderSizePixel = 0; chBox.Parent = chEnableToggle
+    Instance.new("UICorner", chBox).CornerRadius = UDim.new(0, 3)
+    local chStroke = Instance.new("UIStroke", chBox); chStroke.Color = C.BORDER_LT; chStroke.Thickness = 1.5
+    local chLbl = Instance.new("TextLabel")
+    chLbl.Size = UDim2.new(1, -22, 1, 0); chLbl.Position = UDim2.new(0, 20, 0, 0); chLbl.BackgroundTransparency = 1
+    chLbl.Text = "Enable Crosshair"; chLbl.TextColor3 = C.WHITE; chLbl.Font = FONT_BODY; chLbl.TextSize = 10
+    chLbl.TextXAlignment = Enum.TextXAlignment.Left; chLbl.Parent = chEnableToggle
+    local chState = Config.Weapon.CrosshairEnabled
+    local function renderCh()
+        chBox.BackgroundColor3 = chState and C.WHITE or C.BG_INPUT
+        chStroke.Color = chState and C.WHITE or C.BORDER_LT
+    end
+    renderCh()
+    local chHit = Instance.new("TextButton")
+    chHit.Size = UDim2.new(1, 0, 1, 0); chHit.BackgroundTransparency = 1; chHit.Text = ""; chHit.ZIndex = 5; chHit.Parent = chEnableToggle
+    chHit.MouseButton1Click:Connect(function()
+        chState = not chState; Config.Weapon.CrosshairEnabled = chState; renderCh()
+        if _G.FRH_UpdateCrosshair then _G.FRH_UpdateCrosshair() end
+    end)
+
+    local CROSSHAIR_LIST = {
+        { Name = "CROSSHAIR 1" }, { Name = "CROSSHAIR 2" },
+        { Name = "CROSSHAIR 3" }, { Name = "CROSSHAIR 4" },
+    }
+
+    local chOptions = {}
+    for _, ch in ipairs(CROSSHAIR_LIST) do
+        local row = Instance.new("Frame")
+        row.Size = UDim2.new(1, -4, 0, 20); row.BackgroundColor3 = C.BG_INPUT
+        row.BorderSizePixel = 0; row.LayoutOrder = Order(); row.Parent = crossSection.Content
+        Instance.new("UICorner", row).CornerRadius = UDim.new(0, 3)
+        Instance.new("UIStroke", row).Color = C.BORDER_LT
+        local lbl = Instance.new("TextLabel")
+        lbl.Size = UDim2.new(0.7, 0, 1, 0); lbl.Position = UDim2.new(0, 6, 0, 0); lbl.BackgroundTransparency = 1
+        lbl.Text = ch.Name; lbl.TextColor3 = C.WHITE
+        lbl.Font = FONT_BODY; lbl.TextSize = 9; lbl.TextXAlignment = Enum.TextXAlignment.Left; lbl.Parent = row
+        local colorBtn = Instance.new("TextButton")
+        colorBtn.Size = UDim2.new(0, 16, 0, 16); colorBtn.Position = UDim2.new(1, -22, 0.5, -8)
+        colorBtn.BackgroundColor3 = Config.Weapon.CrosshairColors[ch.Name]; colorBtn.BorderSizePixel = 0; colorBtn.Text = ""; colorBtn.Parent = row
+        Instance.new("UICorner", colorBtn).CornerRadius = UDim.new(0, 3)
+        Instance.new("UIStroke", colorBtn).Color = Color3.fromRGB(80,80,80)
+        local cname = ch.Name
+        colorBtn.MouseButton1Click:Connect(function()
+            OpenColorPicker("CH_" .. cname, function(newColor)
+                Config.Weapon.CrosshairColors[cname] = newColor
+                colorBtn.BackgroundColor3 = newColor
+                if _G.FRH_UpdateCrosshair then _G.FRH_UpdateCrosshair() end
+            end)
+        end)
+        local selBtn = Instance.new("TextButton")
+        selBtn.Size = UDim2.new(0.3, -24, 1, 0); selBtn.Position = UDim2.new(0.7, 0, 0, 0)
+        selBtn.BackgroundTransparency = 1; selBtn.Text = (Config.Weapon.CrosshairSelected == ch.Name) and "ATIVO" or "USAR"
+        selBtn.TextColor3 = C.WHITE; selBtn.Font = FONT_HEADER; selBtn.TextSize = 8; selBtn.Parent = row
+        selBtn.MouseButton1Click:Connect(function()
+            Config.Weapon.CrosshairSelected = cname
+            for _, r in pairs(chOptions) do r.sel.Text = "USAR" end
+            selBtn.Text = "ATIVO"
+            if _G.FRH_UpdateCrosshair then _G.FRH_UpdateCrosshair() end
+        end)
+        chOptions[ch.Name] = { Row = row, ColorBtn = colorBtn, sel = selBtn, Label = lbl }
+    end
+
+    CreateSlider(crossSection.Content, "Tamanho", 8, 100, Config.Weapon.CrosshairSize, "px", function(v)
+        Config.Weapon.CrosshairSize = v
+        if _G.FRH_UpdateCrosshair then _G.FRH_UpdateCrosshair() end
+    end)
+
+    local resetWeaponBtn = CreateConfigButton(crossSection.Content, "RESETAR WEAPON")
+    resetWeaponBtn.MouseButton1Click:Connect(function()
+        Config.Weapon.InfiniteAmmo = false; Config.Weapon.NoRecoil = false; Config.Weapon.NoSpread = false
+        Config.Weapon.FireRate = false; Config.Weapon.AutoFire = false; Config.Weapon.DamageBoost = false
+        Config.Weapon.CrosshairEnabled = false; Config.Weapon.CrosshairSelected = "Nenhum"; Config.Weapon.CrosshairSize = 24
+        chState = false; renderCh()
+        for _, r in pairs(chOptions) do r.sel.Text = "USAR" end
+        if _G.FRH_UpdateCrosshair then _G.FRH_UpdateCrosshair() end
+        restoreAllWeaponValues()
+    end)
+
+    CreateDivider(wRight)
+    local pullStatus = Instance.new("TextLabel")
+    pullStatus.Size = UDim2.new(1, -4, 0, 18); pullStatus.BackgroundTransparency = 1
+    pullStatus.Text = ""; pullStatus.TextColor3 = C.TEXT_DIM; pullStatus.Font = FONT_BODY; pullStatus.TextSize = 8
+    pullStatus.TextXAlignment = Enum.TextXAlignment.Left; pullStatus.Parent = wRight
+    pullStatus.LayoutOrder = Order()
+
+    CreateToggle(wRight, "PUXAR ARMAS", Config.PuxarArmas.Enabled, function(v)
+        Config.PuxarArmas.Enabled = v
+        if _G.FRH_SetupPuxarArmas then _G.FRH_SetupPuxarArmas() end
+        pullStatus.Text = v and "Puxando..." or "Parado"
+        pullStatus.TextColor3 = v and C.GREEN or C.TEXT_DIM
+    end)
+
+    CreateSlider(wRight, "Distancia", 5, 500, Config.PuxarArmas.DistanciaPuxar, "st", function(v)
+        Config.PuxarArmas.DistanciaPuxar = v
+    end)
+end
+
+local function buildWorldTab()
+    local wop = TabPages.WORLD
+    CreateToggle(wop, "Fullbright", Config.Visuals.Fullbright, function(v) Config.Visuals.Fullbright = v end)
+    CreateToggle(wop, "No Fog", Config.Visuals.NoFog, function(v) Config.Visuals.NoFog = v end)
+    CreateToggle(wop, "XRay", Config.Visuals.XRay, function(v) Config.Visuals.XRay = v end)
+    CreateSlider(wop, "XRay Amount", 0, 1, Config.Visuals.XRayAmount, "", function(v) Config.Visuals.XRayAmount = v end)
+    CreateDivider(wop)
+    createCycleButton(wop, "Horario", { "Default", "06:00:00", "12:00:00", "18:00:00", "00:00:00" }, Config.Visuals.SkyTime, function(v) Config.Visuals.SkyTime = v end)
+    CreateDivider(wop)
+    local fovSlider = CreateSlider(wop, "FOV", 30, 150, Config.Visuals.FOV, "", function(v) Config.Visuals.FOV = v; if Camera then Camera.FieldOfView = v end end)
+    CreateDivider(wop)
+    local nb = CreateLeftButton(wop, "CAMERA NORMAL")
+    local sl = CreateStatusLabel(wop)
+    nb.MouseButton1Click:Connect(function()
+        Config.Visuals.FOV = 70
+        if Camera then Camera.FieldOfView = 70 end
+        if fovSlider then fovSlider.SetValue(70) end
+        LocalPlayer.CameraMode = Enum.CameraMode.Classic
+        LocalPlayer.CameraMaxZoomDistance = 128; LocalPlayer.CameraMinZoomDistance = 0.5
+        sl.SetText("Camera resetada!", C.WHITE)
+    end)
+
+    CreateDivider(wop)
+    local stretchBtn = CreateLeftButton(wop, "ESTICA TELA")
+    stretchBtn.MouseButton1Click:Connect(function()
+        if StretchScreenPanel then StretchScreenPanel:Destroy(); StretchScreenPanel = nil
+        else createStretchScreenPanel() end
+    end)
+end
+
+local function buildConfigTab()
+    local cp = TabPages.CONFIG
+    CreateLabel(cp, "CONFIGURACOES", C.WHITE); CreateDivider(cp)
+    local ci = CreateTextInput(cp, "Nome da Config", "Digite...", "")
+    local cd = createDropdown(cp, "Configs Salvas", { "Nenhuma" }, "Nenhuma")
+    local sb = CreateConfigButton(cp, "SALVAR")
+    local lb = CreateConfigButton(cp, "CARREGAR")
+    local db = CreateConfigButton(cp, "EXCLUIR")
+    local cs = CreateStatusLabel(cp)
+
+    local function RCD()
+        local l = GetConfigList()
+        if #l == 0 then cd.SetOptions({ "Nenhuma" }, "Nenhuma")
+        else local c = cd.GetValue(); cd.SetOptions(l, table.find(l, c) and c or l[1]) end
+    end
+    RCD()
+
+    sb.MouseButton1Click:Connect(function()
+        local n = ci.GetValue():gsub("%s+", "_")
+        if n == "" then cs.SetText("Digite um nome.", C.RED); return end
+        local s, m = SaveConfig(n, false)
+        if s then cs.SetText(m, C.WHITE); ci.SetValue(""); RCD()
+        elseif m == "Ja existe!" then
+            ShowConfirmModal("Ja existe.\nSobrescrever?", function()
+                local s2, m2 = SaveConfig(n, true)
+                cs.SetText(m2, s2 and C.WHITE or C.RED)
+                if s2 then ci.SetValue(""); RCD() end
+            end)
+        else cs.SetText(m, C.RED) end
+    end)
+    lb.MouseButton1Click:Connect(function()
+        local n = cd.GetValue()
+        if n == "Nenhuma" then cs.SetText("Selecione.", C.RED); return end
+        local s, m = LoadConfig(n); cs.SetText(m, s and C.WHITE or C.RED)
+        if s then RefreshUI() end
+    end)
+    db.MouseButton1Click:Connect(function()
+        local n = cd.GetValue()
+        if n == "Nenhuma" then cs.SetText("Selecione.", C.RED); return end
+        ShowConfirmModal("Excluir: " .. n .. "?", function()
+            local s, m = DeleteConfig(n)
+            cs.SetText(m, s and C.WHITE or C.RED)
+            if s then RCD() end
+        end)
+    end)
+
+    CreateDivider(cp)
+    CreateLabel(cp, "TECLAS", C.WHITE)
+    local menuKeyRow = Instance.new("Frame"); menuKeyRow.Size = UDim2.new(1, 0, 0, 22); menuKeyRow.BackgroundTransparency = 1; menuKeyRow.LayoutOrder = Order(); menuKeyRow.Parent = cp
+    local mkl = Instance.new("TextLabel")
+    mkl.Size = UDim2.new(0.4, 0, 1, 0); mkl.BackgroundTransparency = 1
+    mkl.Text = "Abrir Menu"; mkl.TextColor3 = C.WHITE; mkl.Font = FONT_BODY; mkl.TextSize = 9; mkl.TextXAlignment = Enum.TextXAlignment.Left; mkl.Parent = menuKeyRow
+    local menuKeyBtn = Instance.new("TextButton")
+    menuKeyBtn.Size = UDim2.new(0, 60, 0, 15); menuKeyBtn.Position = UDim2.new(1, -64, 0.5, -7.5)
+    menuKeyBtn.BackgroundColor3 = C.BG_INPUT; menuKeyBtn.BorderSizePixel = 0
+    menuKeyBtn.Text = "[ " .. getBindName(Config.MenuKey) .. " ]"
+    menuKeyBtn.TextColor3 = C.WHITE; menuKeyBtn.Font = FONT_HEADER; menuKeyBtn.TextSize = 8; menuKeyBtn.Parent = menuKeyRow
+    Instance.new("UICorner", menuKeyBtn).CornerRadius = UDim.new(0, 3); Instance.new("UIStroke", menuKeyBtn).Color = C.BORDER_LT
+    local mkConn
+    menuKeyBtn.MouseButton1Click:Connect(function()
+        if waitingForBind then return end
+        waitingForBind = true
+        menuKeyBtn.Text = "[ ... ]"; menuKeyBtn.TextColor3 = C.WHITE; menuKeyBtn.BackgroundColor3 = C.BLACK
+        if mkConn then mkConn:Disconnect() end
+        mkConn = UserInputService.InputBegan:Connect(function(inp, gp)
+            if not waitingForBind then return end
+            local nb = nil
+            if inp.UserInputType == Enum.UserInputType.Keyboard then
+                if inp.KeyCode ~= Enum.KeyCode.Unknown then nb = inp.KeyCode end
+            end
+            if not nb then return end
+            Config.MenuKey = nb
+            waitingForBind = false
+            menuKeyBtn.Text = "[ " .. getBindName(nb) .. " ]"
+            menuKeyBtn.TextColor3 = C.WHITE; menuKeyBtn.BackgroundColor3 = C.BG_INPUT
+            if mkConn then mkConn:Disconnect(); mkConn = nil end
+        end)
+    end)
+    CreateDivider(cp)
+    CreateLabel(cp, "UNLOAD", C.WHITE)
+    local unloadBtn = CreateConfigButton(cp, "UNLOAD CHEAT")
+    unloadBtn.MouseButton1Click:Connect(function()
+        pcall(function() if FOVCircleOuter then FOVCircleOuter:Remove(); FOVCircleOuter = nil end end)
+        pcall(function() if FOVCircleInner then FOVCircleInner:Remove(); FOVCircleInner = nil end end)
+        pcall(function() for _, player in ipairs(Players:GetPlayers()) do RemoveESP(player) end end)
+        pcall(function() for npc, _ in pairs(NPC_Cache) do RemoveNPCESP(npc) end end)
+        pcall(restoreAllHitboxes); pcall(stopSpectate); pcall(stopAdminFly); pcall(removeNoclip)
+        pcall(flyCarStop)
+        pcall(restoreAllWeaponValues)
+        pcall(function() if _G.FRH_FlingConn then _G.FRH_FlingConn:Disconnect() end end)
+        pcall(function() if _G.FRH_FlingHeartbeat then _G.FRH_FlingHeartbeat:Disconnect() end end)
+        pcall(function() if clickTPConnection then clickTPConnection:Disconnect() end end)
+        pcall(function() if _G.FRH_PuxarArmasLoop then _G.FRH_PuxarArmasLoop:Disconnect() end end)
+        pcall(function() if autoFireConn then autoFireConn:Disconnect() end end)
+        pcall(function() if ActiveColorPicker then ActiveColorPicker:Destroy() end end)
+        pcall(function() if CrosshairGui then CrosshairGui:Destroy() end end)
+        pcall(function() RunService:UnbindFromRenderStep("FRH_AimbotRender") end)
+        pcall(function() if FloatingWhitelistPanel then FloatingWhitelistPanel:Destroy() end end)
+        pcall(function() if AimbotWhitelistPanel then AimbotWhitelistPanel:Destroy() end end)
+        pcall(function() if StretchScreenPanel then StretchScreenPanel:Destroy() end end)
+        ActiveColorPicker = nil
+        for _, k in ipairs({"FRH_ESPLoop","FRH_FovLoop","FRH_VisualsLoop","FRH_MatchaLoop","FRH_HitboxLoop","FRH_XRayLoop","FRH_PlayerLoop","FRH_CameraLoop","FRH_NoclipLoop","FRH_FlyLoop","FRH_AmmoLoop","FRH_NPCScanLoop","FRH_FlyCarLoop","FRH_StretchLoop"}) do
+            pcall(function() _G[k]:Disconnect() end)
+        end
+        pcall(function() if ScreenGui then ScreenGui.Enabled = false; ScreenGui:Destroy() end end)
+        pcall(function() if PickerGui then PickerGui.Enabled = false; PickerGui:Destroy() end end)
+        _G.FRH_Loaded = false
+    end)
+end
+
+buildAimbotTab()
+buildVisualTab()
+buildPlayerTab()
+buildWeaponTab()
+buildWorldTab()
+buildConfigTab()
+
+-- KEYBINDS GLOBAIS
+UserInputService.InputBegan:Connect(function(inp, gp)
+    if gp then return end
+    if waitingForBind then return end
+    local mk = Config.MenuKey
+    if mk and typeof(mk) == "EnumItem" and mk.EnumType == Enum.KeyCode and inp.KeyCode == mk then
+        MenuOpen = not MenuOpen; Panel.Visible = MenuOpen
+        return
+    end
+    if Config.Player.NoclipKeybind and inp.KeyCode == Config.Player.NoclipKeybind then
+        Config.Player.NoclipEnabled = not Config.Player.NoclipEnabled
+        if _G.FRH_NoclipCtrl then _G.FRH_NoclipCtrl.SetState(Config.Player.NoclipEnabled) end
+        return
+    end
+    if Config.Player.FlyKeybind and inp.KeyCode == Config.Player.FlyKeybind then
+        Config.Player.FlyEnabled = not Config.Player.FlyEnabled
+        if _G.FRH_FlyCtrl then _G.FRH_FlyCtrl.SetState(Config.Player.FlyEnabled) end
+        return
+    end
+    if Config.Player.FlyCarKeybind and inp.KeyCode == Config.Player.FlyCarKeybind then
+        Config.Player.FlyCarEnabled = not Config.Player.FlyCarEnabled
+        if _G.FRH_FlyCarCtrl then _G.FRH_FlyCarCtrl.SetState(Config.Player.FlyCarEnabled) end
+        return
+    end
+    if inp.KeyCode == Enum.KeyCode.V then
+        Config.Weapon.InfiniteAmmo = not Config.Weapon.InfiniteAmmo
+    end
+end)
+
+-- DRAG DO PAINEL PRINCIPAL
+local dragging = false; local ds = nil; local sp2 = nil
+TitleBar.InputBegan:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 then dragging = true; ds = i.Position; sp2 = Panel.Position end end)
+TitleBar.InputEnded:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end end)
+UserInputService.InputChanged:Connect(function(i)
+    if dragging and i.UserInputType == Enum.UserInputType.MouseMovement then
+        local d = i.Position - ds
+        Panel.Position = UDim2.new(sp2.X.Scale, sp2.X.Offset + d.X, sp2.Y.Scale, sp2.Y.Offset + d.Y)
+    end
+end)
+
+-- AIMBOT RENDER STEP
+local AIMBOT_RENDER_PRIORITY = Enum.RenderPriority.Camera.Value + 10
+local function FRH_AimbotRenderStep(dt)
+    Camera = Workspace.CurrentCamera
+    if not Camera then return end
+    local cam = Camera
+    if Config.Aimbot.Enabled and shouldAim() then
+        local target = getBestTarget()
+        if target and target.Part and target.Part.Parent then
+            local aimPos = target.AimPos
+            if not aimPos then aimPos = getAimPosition(target.Char, target.Part) or target.Part.Position end
+            if Config.Aimbot.Aimlock then
+                cam.CFrame = CFrame.lookAt(cam.CFrame.Position, aimPos)
+            else
+                local goal = CFrame.lookAt(cam.CFrame.Position, aimPos)
+                local smoothing = math.clamp(Config.Aimbot.Smoothing, 0.01, 1)
+                cam.CFrame = cam.CFrame:Lerp(goal, smoothing)
+            end
+        end
+    end
+end
+pcall(function() RunService:UnbindFromRenderStep("FRH_AimbotRender") end)
+RunService:BindToRenderStep("FRH_AimbotRender", AIMBOT_RENDER_PRIORITY, FRH_AimbotRenderStep)
+
+-- XRAY
+local xrayCache = {}
+_G.FRH_XRayLoop = RunService.Heartbeat:Connect(function()
+    if Config.Visuals.XRay then
+        for _, obj in ipairs(Workspace:GetDescendants()) do
+            if obj:IsA("BasePart") and not obj:IsDescendantOf(LocalPlayer.Character) and not xrayCache[obj] then
+                pcall(function() obj.LocalTransparencyModifier = Config.Visuals.XRayAmount; xrayCache[obj] = true end)
+            end
+        end
+    else
+        for obj, _ in pairs(xrayCache) do
+            if obj and obj.Parent then pcall(function() obj.LocalTransparencyModifier = 0 end) end
+        end
+        xrayCache = {}
+    end
+end)
+
+-- VISUALS LOOP
+_G.FRH_VisualsLoop = RunService.RenderStepped:Connect(function()
+    if Config.Visuals.Fullbright then
+        Lighting.Brightness = 3; Lighting.Ambient = Color3.fromRGB(255, 255, 255); Lighting.OutdoorAmbient = Color3.fromRGB(255, 255, 255)
+    end
+    if Config.Visuals.NoFog then Lighting.FogEnd = 100000; Lighting.FogStart = 100000 end
+    if Camera and Config.World.StretchIntensity == 0 then
+        if lastAppliedFOV ~= Config.Visuals.FOV then
+            Camera.FieldOfView = Config.Visuals.FOV
+            lastAppliedFOV = Config.Visuals.FOV
+        elseif Camera.FieldOfView ~= Config.Visuals.FOV and Camera.FieldOfView ~= 70 then
+            Camera.FieldOfView = Config.Visuals.FOV
+        end
+    end
+    if Config.Visuals.SkyTime ~= "Default" then Lighting.TimeOfDay = Config.Visuals.SkyTime end
+end)
+
+-- PLAYER LOOP
+_G.FRH_PlayerLoop = RunService.Heartbeat:Connect(function()
+    local char = LocalPlayer.Character
+    if not char then return end
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    if not hum then return end
+    if Config.Player.WalkSpeedEnabled then
+        if hum.WalkSpeed ~= Config.Player.WalkSpeed then hum.WalkSpeed = Config.Player.WalkSpeed end
+    end
+    if Config.Player.JumpPowerEnabled then
+        if not hum.UseJumpPower then hum.UseJumpPower = true end
+        if hum.JumpPower ~= Config.Player.JumpPower then hum.JumpPower = Config.Player.JumpPower end
+    end
+end)
+
+-- CAMERA LOOP (spectate)
+_G.FRH_CameraLoop = RunService.RenderStepped:Connect(function()
+    if not Camera then return end
+    if SpectateTarget then
+        local tgtChar = SpectateTarget.Character
+        if not tgtChar then stopSpectate(); return end
+        local tgtPart = tgtChar:FindFirstChildOfClass("Humanoid") or tgtChar:FindFirstChild("Head") or tgtChar:FindFirstChild("HumanoidRootPart")
+        if tgtPart then
+            if Camera.CameraSubject ~= tgtPart then Camera.CameraSubject = tgtPart end
+        else stopSpectate() end
+    end
+end)
+
+-- INFINITE JUMP
+UserInputService.JumpRequest:Connect(function()
+    if Config.Player.InfiniteJump then
+        local char = LocalPlayer.Character
+        local hum = char and char:FindFirstChildOfClass("Humanoid")
+        if hum then hum:ChangeState(Enum.HumanoidStateType.Jumping) end
+    end
+end)
+
+-- FOV CIRCLES
+local function createFOVCircles()
+    if FOVCircleOuter then FOVCircleOuter:Remove(); FOVCircleOuter = nil end
+    if FOVCircleInner then FOVCircleInner:Remove(); FOVCircleInner = nil end
+    if not Drawing then return end
+    FOVCircleOuter = Drawing.new("Circle"); FOVCircleOuter.Thickness = 3; FOVCircleOuter.NumSides = 64; FOVCircleOuter.Radius = Config.Aimbot.FOV
+    FOVCircleOuter.Filled = false; FOVCircleOuter.Transparency = 1; FOVCircleOuter.Color = C.FOV_OUTER; FOVCircleOuter.Visible = false
+    FOVCircleInner = Drawing.new("Circle"); FOVCircleInner.Thickness = 1.5; FOVCircleInner.NumSides = 64; FOVCircleInner.Radius = Config.Aimbot.FOV
+    FOVCircleInner.Filled = false; FOVCircleInner.Transparency = 1; FOVCircleInner.Color = C.FOV_INNER; FOVCircleInner.Visible = false
+end
+
+_G.FRH_FovLoop = RunService.RenderStepped:Connect(function()
+    if not Camera then return end
+    if Config.Aimbot.DrawFOV then
+        if not FOVCircleOuter or not FOVCircleInner then createFOVCircles() end
+        if FOVCircleOuter and FOVCircleInner then
+            FOVCircleInner.Radius = Config.Aimbot.FOV
+            FOVCircleOuter.Radius = Config.Aimbot.FOV
+            local pos
+            if Config.Aimbot.HoldMode == "Always" then
+                pos = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+            else
+                pos = UserInputService:GetMouseLocation()
+            end
+            FOVCircleOuter.Position = pos; FOVCircleOuter.Color = C.FOV_OUTER; FOVCircleOuter.Visible = true
+            FOVCircleInner.Position = pos; FOVCircleInner.Color = C.FOV_INNER; FOVCircleInner.Visible = true
+        end
+    else
+        if FOVCircleOuter then FOVCircleOuter.Visible = false end
+        if FOVCircleInner then FOVCircleInner.Visible = false end
+    end
+end)
+
+-- MATCHA
+local matchaDragging = false; local matchaDragStart = nil; local matchaStartPos = nil
+local function createMatchaFrame()
+    MatchaFrame = Instance.new("Frame")
+    MatchaFrame.Name = "FRH_Matcha"
+    MatchaFrame.Size = UDim2.new(0, 300, 0, 50)
+    MatchaFrame.Position = UDim2.new(0.5, -150, 0, 10)
+    MatchaFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 22); MatchaFrame.BackgroundTransparency = 0.15
+    MatchaFrame.BorderSizePixel = 0; MatchaFrame.ZIndex = 200; MatchaFrame.Active = true; MatchaFrame.Visible = true; MatchaFrame.Parent = ScreenGui
+    Instance.new("UICorner", MatchaFrame).CornerRadius = UDim.new(0, 6)
+    local str = Instance.new("UIStroke", MatchaFrame); str.Color = C.WHITE; str.Thickness = 1
+    local info = Instance.new("TextLabel")
+    info.Name = "Info"; info.Size = UDim2.new(1, -20, 1, -10); info.Position = UDim2.new(0, 10, 0, 5)
+    info.BackgroundTransparency = 1; info.TextColor3 = C.WHITE; info.Font = FONT_BODY; info.TextSize = 9
+    info.TextXAlignment = Enum.TextXAlignment.Left; info.Parent = MatchaFrame
+    MatchaFrame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            matchaDragging = true; matchaDragStart = input.Position; matchaStartPos = MatchaFrame.Position
+        end
+    end)
+    MatchaFrame.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then matchaDragging = false end
+    end)
+end
+
+_G.FRH_MatchaDragLoop = UserInputService.InputChanged:Connect(function(input)
+    if matchaDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) and MatchaFrame then
+        local delta = input.Position - matchaDragStart
+        MatchaFrame.Position = UDim2.new(matchaStartPos.X.Scale, matchaStartPos.X.Offset + delta.X, matchaStartPos.Y.Scale, matchaStartPos.Y.Offset + delta.Y)
+    end
+end)
+
+_G.FRH_MatchaLoop = RunService.RenderStepped:Connect(function(dt)
+    if not MatchaFrame or not MatchaFrame.Parent then createMatchaFrame(); return end
+    MatchaFrame.Visible = Config.Matcha.Enabled
+    if Config.Matcha.Enabled then
+        local fps = math.floor(1 / (dt > 0 and dt or 0.016))
+        local ping = math.floor(LocalPlayer:GetNetworkPing() * 1000)
+        local elapsed = math.floor(tick() - startTime)
+        local mins = math.floor(elapsed / 60); local secs = elapsed % 60
+        local info = MatchaFrame:FindFirstChild("Info")
+        if info then
+            local text = ""
+            if Config.Matcha.ShowFPS then text = text .. "FPS: " .. fps .. "  " end
+            if Config.Matcha.ShowPing then text = text .. "Ping: " .. ping .. "ms  " end
+            text = text .. string.format("%02d:%02d", mins, secs)
+            info.Text = text
+        end
+    end
+end)
+
+-- INICIALIZACAO
+if _G.FRH_UpdateCrosshair then _G.FRH_UpdateCrosshair() end
+if _G.FRH_SetupAutoFire then _G.FRH_SetupAutoFire() end
+RefreshUI()
+switchTab("AIMBOT")
